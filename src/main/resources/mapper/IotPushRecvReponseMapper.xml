@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotPushRecvReponseMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.IotPushRecvReponse" >
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="childclassid" property="childclassid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="devtype" property="devtype" jdbcType="VARCHAR" />
+    <result column="uploadtime" property="uploadtime" jdbcType="TIMESTAMP" />
+    <result column="uploadvalue" property="uploadvalue" jdbcType="VARCHAR" />
+    <result column="uploadvalue_i" property="uploadvalue_i" jdbcType="VARCHAR" />
+    <result column="uploadmsg" property="uploadmsg" jdbcType="VARCHAR" />
+    <result column="confirmtime" property="confirmtime" jdbcType="TIMESTAMP" />
+    <result column="confirmvalue" property="confirmvalue" jdbcType="VARCHAR" />
+    <result column="confirmcode" property="confirmcode" jdbcType="VARCHAR" />
+    <result column="confirmmsg" property="confirmmsg" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="iotreponsetime" property="iotreponsetime" jdbcType="TIMESTAMP" />
+    <result column="iotreponsecode" property="iotreponsecode" jdbcType="VARCHAR" />
+    <result column="iotreponsemsg" property="iotreponsemsg" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="selectDID" resultType="com.weeg.bean.IotPushRecvReponse">
+  	select did as did from iotpushrecvreponse where classid = #{classid,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="selectClassid" resultType="com.weeg.bean.IotPushRecvReponse">
+  	SELECT top 1 classid as classid FROM iotpushrecvreponse where devserial = #{devserial,jdbcType=VARCHAR} and did = #{did,jdbcType=VARCHAR} ORDER BY uploadtime desc
+  </select>
+  
+ <select id="selectBySerialandTime" resultType="com.weeg.bean.IotPushRecvReponse">
+    select 
+	classid as classid, 
+	childclassid as childclassid, 
+	devserial as devserial, 
+	iotserial as iotserial, 
+	devtype as devtype, 
+	uploadtime as uploadtime, 
+	uploadtime1 as uploadtime1, 
+	uploadvalue as uploadvalue, 
+	uploadvalue_i as uploadvalue_i, 
+	uploadmsg as uploadmsg, 
+	confirmtime as confirmtime, 
+	confirmvalue as confirmvalue, 
+	confirmcode as confirmcode, 
+	confirmmsg as confirmmsg, 
+	iotreponsetime as iotreponsetime, 
+	iotreponsecode as iotreponsecode, 
+	iotreponsemsg as iotreponsemsg, 
+	did as did 
+    from iotpushrecvreponse where devserial = #{devserial,jdbcType=VARCHAR} and uploadtime between #{startTime} and #{endTime} order by uploadtime desc
+  </select>
+  
+  <select id="selectReponse" resultType="com.weeg.bean.IotPushRecvReponse">
+  	select 
+	classid as classid, 
+	childclassid as childclassid, 
+	devserial as devserial, 
+	iotserial as iotserial, 
+	devtype as devtype, 
+	uploadtime as uploadtime, 
+	uploadtime1 as uploadtime1, 
+	uploadvalue as uploadvalue, 
+	uploadvalue_i as uploadvalue_i, 
+	uploadmsg as uploadmsg, 
+	confirmtime as confirmtime, 
+	confirmvalue as confirmvalue, 
+	confirmcode as confirmcode, 
+	confirmmsg as confirmmsg, 
+	iotreponsetime as iotreponsetime, 
+	iotreponsecode as iotreponsecode, 
+	iotreponsemsg as iotreponsemsg, 
+	did as did 
+	from iotpushrecvreponse where classid = #{classid,jdbcType=VARCHAR}
+  </select>
+  
+  <insert id="insert" parameterType="com.weeg.bean.IotPushRecvReponse" >
+    insert into iotpushrecvreponse (
+    classid, 
+    childclassid, 
+    devserial, 
+      iotserial, 
+      devtype, 
+      did, 
+      uploadtime,
+      uploadtime1,
+       uploadvalue, 
+       uploadvalue_i, 
+      uploadmsg, 
+      confirmtime, 
+      confirmvalue, 
+      confirmcode, 
+      confirmmsg, 
+      iotreponsetime, 
+      iotreponsecode, 
+      iotreponsemsg)
+    values (
+    #{classid,jdbcType=VARCHAR}, 
+    #{childclassid,jdbcType=VARCHAR}, 
+    #{devserial,jdbcType=VARCHAR}, 
+      #{iotserial,jdbcType=VARCHAR}, 
+      #{devtype,jdbcType=VARCHAR}, 
+      #{did,jdbcType=VARCHAR}, 
+      #{uploadtime,jdbcType=TIMESTAMP}, 
+      #{uploadtime1,jdbcType=VARCHAR}, 
+      #{uploadvalue,jdbcType=VARCHAR}, 
+      #{uploadvalueI,jdbcType=VARCHAR}, 
+      #{uploadmsg,jdbcType=VARCHAR}, 
+      #{confirmtime,jdbcType=TIMESTAMP},
+       #{confirmvalue,jdbcType=VARCHAR}, 
+      #{confirmcode,jdbcType=VARCHAR}, 
+      #{confirmmsg,jdbcType=VARCHAR}, 
+      #{iotreponsetime,jdbcType=TIMESTAMP}, 
+      #{iotreponsecode,jdbcType=VARCHAR}, 
+      #{iotreponsemsg,jdbcType=VARCHAR})
+  </insert>
+  
+  <update id="updateDidByClassid" parameterType="java.lang.String">
+		update iotpushrecvreponse
+		set did = #{did,jdbcType=VARCHAR}
+		where classid = #{classid,jdbcType=VARCHAR}
+  </update>
+  
+  <update id="updateConfirmtimeAndConfirmvlaue">
+  	update iotpushrecvreponse set confirmtime = #{confirmtime,jdbcType=VARCHAR}, 
+  	confirmvalue = #{confirmvalue,jdbcType=VARCHAR}, 
+  	iotreponsemsg = #{iotreponsemsg,jdbcType=VARCHAR}
+  	where classid = #{classid,jdbcType=VARCHAR}
+  </update>
+	
+</mapper>

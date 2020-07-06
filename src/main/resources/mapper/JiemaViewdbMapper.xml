@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.JiemaViewdbMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.JiemaViewdb" >
+     <result column="devserial" jdbcType="VARCHAR" property="devserial" />
+    <result column="iotserial" jdbcType="VARCHAR" property="iotserial" />
+    <result column="did" jdbcType="VARCHAR" property="did" />
+    <result column="uploadtime" jdbcType="TIMESTAMP" property="uploadtime" />
+    <result column="uploadvalue" jdbcType="VARCHAR" property="uploadvalue" />
+    <result column="data" jdbcType="VARCHAR" property="data" />
+    <result column="updatetime" jdbcType="TIMESTAMP" property="updatetime" />
+    <result column="childclassid" jdbcType="VARCHAR" property="childclassid" />
+    <result column="confirmvalue" jdbcType="VARCHAR" property="confirmvalue" />
+    <result column="confirmcode" jdbcType="VARCHAR" property="confirmcode" />
+    <result column="confirmmsg" jdbcType="VARCHAR" property="confirmmsg" />
+    <result column="iotreponsetime" jdbcType="TIMESTAMP" property="iotreponsetime" />
+    <result column="confirmtime" jdbcType="TIMESTAMP" property="iotreponsetime" />
+    <result column="iotreponsecode" jdbcType="VARCHAR" property="iotreponsecode" />
+    <result column="iotreponsemsg" jdbcType="VARCHAR" property="iotreponsemsg" />
+    <result column="classid" jdbcType="VARCHAR" property="classid" />
+  </resultMap>
+ <select id="selectByChildclassId" resultType="com.weeg.bean.JiemaViewdb">
+    select 
+   devserial as devserial,
+   iotserial as iotserial,
+   did as did,
+   uploadtime as uploadtime,
+   uploadvalue as uploadvalue,
+   data as data,
+   updatetime as updatetime,
+   childclassid as childclassid,
+   confirmvalue as confirmvalue,
+   confirmcode as confirmcode,
+   confirmmsg as confirmmsg,
+   iotreponsetime as iotreponsetime,
+   confirmtime as confirmtime,
+   iotreponsecode as iotreponsecode,
+   classid as classid,
+   iotreponsemsg as iotreponsemsg
+    from NBDataConsole.dbo.jiemaViewdb
+    where childclassid = #{childclassid,jdbcType=VARCHAR}
+  </select>
+</mapper>

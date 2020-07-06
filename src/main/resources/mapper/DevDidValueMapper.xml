@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevDidValueMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevDidValue" >
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="childclassid" property="childclassid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="upvalue" property="upvalue" jdbcType="VARCHAR" />
+    <result column="uptime" property="uptime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <insert id="insert" parameterType="com.weeg.bean.DevDidValue" >
+    insert into devdidvalue (classid, childclassid, devserial, 
+      did, upvalue, uptime
+      )
+    values (#{classid,jdbcType=VARCHAR}, #{childclassid,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, 
+      #{did,jdbcType=VARCHAR}, #{upvalue,jdbcType=VARCHAR}, #{uptime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.weeg.bean.DevDidValue" >
+    insert into devdidvalue
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="classid != null" >
+        classid,
+      </if>
+      <if test="childclassid != null" >
+        childclassid,
+      </if>
+      <if test="devserial != null" >
+        devserial,
+      </if>
+      <if test="did != null" >
+        did,
+      </if>
+      <if test="upvalue != null" >
+        upvalue,
+      </if>
+      <if test="uptime != null" >
+        uptime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="classid != null" >
+        #{classid,jdbcType=VARCHAR},
+      </if>
+      <if test="childclassid != null" >
+        #{childclassid,jdbcType=VARCHAR},
+      </if>
+      <if test="devserial != null" >
+        #{devserial,jdbcType=VARCHAR},
+      </if>
+      <if test="did != null" >
+        #{did,jdbcType=VARCHAR},
+      </if>
+      <if test="upvalue != null" >
+        #{upvalue,jdbcType=VARCHAR},
+      </if>
+      <if test="uptime != null" >
+        #{uptime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

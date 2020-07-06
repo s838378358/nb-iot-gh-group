@@ -1,0 +1,158 @@
+package com.weeg.util;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+
+public class Post {
+	static String host = "api.js.cmcconenet.com";
+//	// 江苏key
+//	static String apiKey = "yVMWn3tBUaWds2SLrvD6Li2C=KU=";
+
+	// 发出post请求
+	public String post(String strURL, String params) {
+		try {
+			URL url = new URL(strURL);// 创建连接
+			HttpURLConnection connection = (HttpURLConnection) url
+					.openConnection();// 打开链接
+			connection.setDoOutput(true);// 隐式设置请求方式为post
+			connection.setDoInput(true);// 从httpUrlConnection读入，默认的情况下是true
+			connection.setUseCaches(false);// post请求不能使用缓存
+			connection.setInstanceFollowRedirects(true);// 是否连接遵循重定向
+			connection.setRequestMethod("POST");// 设置请求方式 
+			connection.setRequestProperty("Content-Type", "application/json"); // 设置发送数据的格式
+			connection.connect();// 实现连接
+			OutputStreamWriter out = new OutputStreamWriter(
+					connection.getOutputStream(), "UTF-8");// 字符输出流，确认流的输出文件按照UTF—8的格式
+			out.append(params);// 将params中的字符追加
+			
+			out.flush();// 在关闭流的时候，将内存中的数据一次性输出
+			out.close();// 关闭流
+			// 读取响应
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String lines;
+			StringBuffer sb = new StringBuffer("");
+			while ((lines = reader.readLine()) != null) {
+				lines = new String(lines.getBytes(), "utf-8");
+				sb.append(lines);
+			}
+			reader.close();
+			// 断开连接
+			connection.disconnect();
+			String response = sb.toString();
+			System.out.println("response:"+response);
+			return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "fail";
+		}
+	}
+
+	public static String get(String url) {
+		BufferedReader in = null;
+		try {
+			URL realUrl = new URL(url);
+			// 打开和URL之间的连接
+			URLConnection connection = realUrl.openConnection();
+			// 设置通用的请求属性
+			connection.setRequestProperty("Content-Type", "application/json");
+			connection.setRequestProperty("Host", host);
+			connection.setRequestProperty("user-agent", "Fiddler");
+			connection.setRequestProperty("Content-Length", "0");
+			connection.setConnectTimeout(100000);
+			connection.setReadTimeout(100000);
+			// 建立实际的连接
+			connection.connect();
+			// 定义 BufferedReader输入流来读取URL的响应
+			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			StringBuffer sb = new StringBuffer();
+			String line;
+			while ((line = in.readLine()) != null) {
+				sb.append(line);
+			}
+			return sb.toString();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		// 使用finally块来关闭输入流
+		finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	public static String postTest(String strURL, String params) {
+		try {
+			URL url = new URL(strURL);// 创建连接
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();// 打开链接
+			connection.setDoOutput(true);// 隐式设置请求方式为post
+			connection.setDoInput(true);// 从httpUrlConnection读入，默认的情况下是true
+			connection.setUseCaches(false);// post请求不能使用缓存
+			connection.setInstanceFollowRedirects(true);// 是否连接遵循重定向
+			connection.setRequestProperty("Content-Type", "application/json"); // 设置发送数据的格式
+			connection.connect();// 实现连接
+			OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");// 字符输出流，确认流的输出文件按照UTF—8的格式
+			out.append(params);// 将params中的字符追加
+			out.flush();// 在关闭流的时候，将内存中的数据一次性输出
+			out.close();// 关闭流
+
+			// 读取响应
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String lines;
+			StringBuffer sb = new StringBuffer("");
+			while ((lines = reader.readLine()) != null) {
+				lines = new String(lines.getBytes(), "utf-8");
+				sb.append(lines);
+			}
+			reader.close();
+			// 断开连接
+			connection.disconnect();
+			String response = sb.toString();
+			return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "fail";
+
+	}
+
+	public String read() {
+		// 获取当前想不运行的服务器地址下的webapps下的项目文件夹地址
+		String path = this.getClass().getResource("/../../").getPath();
+		path = path.replaceAll("%20", " ");
+		// 将地址拼接成需要读取的字符串
+		path = path.replace("/NBWeegServerNew", "") + "NBWeegServerNewUrl.txt";
+
+		// 读取文件
+		BufferedReader br = null;
+		StringBuffer sb = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), "GBK")); // 这里可以控制编码
+			sb = new StringBuffer();
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				br.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		String data = new String(sb);
+
+		return data;
+	}
+
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotReptCtrlReponseMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.IotReptCtrlReponse" >
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="childclassid" property="childclassid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="devtype" property="devtype" jdbcType="VARCHAR" />
+    <result column="uploadtime" property="uploadtime" jdbcType="TIMESTAMP" />
+    <result column="uploadvalue" property="uploadvalue" jdbcType="VARCHAR" />
+    <result column="uploadvalue_i" property="uploadvalue_i" jdbcType="VARCHAR" />
+    <result column="uploadmsg" property="uploadmsg" jdbcType="VARCHAR" />
+    <result column="confirmtime" property="confirmtime" jdbcType="TIMESTAMP" />
+    <result column="confirmcode" property="confirmcode" jdbcType="VARCHAR" />
+    <result column="confirmmsg" property="confirmmsg" jdbcType="VARCHAR" />
+    <result column="iotreponsetime" property="iotreponsetime" jdbcType="TIMESTAMP" />
+    <result column="iotreponsecode" property="iotreponsecode" jdbcType="VARCHAR" />
+    <result column="iotreponsemsg" property="iotreponsemsg" jdbcType="VARCHAR" />
+    <result column="ctrltype" property="ctrltype" jdbcType="VARCHAR" />
+    <result column="iotindex" property="iotindex" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="selectByClassId" resultType="com.weeg.bean.IotReptCtrlReponse">
+    select 
+    classid as classid,
+    childclassid as childclassid,
+    devserial as devserial,
+    iotserial as iotserial,
+    devtype as devtype,
+    uploadtime as uploadtime,
+    uploadvalue as uploadvalue,
+    uploadvalue_i as uploadvalue_i,
+    uploadmsg as uploadmsg,
+    confirmtime as confirmtime,
+    confirmcode as confirmcode,
+    confirmmsg as confirmmsg,
+    iotreponsetime as iotreponsetime,
+    iotreponsecode as iotreponsecode,
+    iotreponsemsg as iotreponsemsg,
+    ctrltype as ctrltype,
+    iotindex as iotindex
+    from iotreptctrlreponse
+    where classid = #{classid,jdbcType=VARCHAR}
+  </select>
+</mapper>

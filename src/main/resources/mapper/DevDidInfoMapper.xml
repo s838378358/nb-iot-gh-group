@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevDidInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevDidInfo" >
+    <id column="did" property="did" jdbcType="VARCHAR" />
+    <result column="didname" property="didname" jdbcType="VARCHAR" />
+    <result column="didattrib" property="didattrib" jdbcType="VARCHAR" />
+    <result column="didlen" property="didlen" jdbcType="VARCHAR" />
+    <result column="datainv" property="datainv" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    did, didname, didattrib, didlen, datainv
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from devdidinfo
+    where did = #{did,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from devdidinfo
+    where did = #{did,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.weeg.bean.DevDidInfo" >
+    insert into devdidinfo (did, didname, didattrib, 
+      didlen, datainv)
+    values (#{did,jdbcType=VARCHAR}, #{didname,jdbcType=VARCHAR}, #{didattrib,jdbcType=VARCHAR}, 
+      #{didlen,jdbcType=VARCHAR}, #{datainv,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.weeg.bean.DevDidInfo" >
+    insert into devdidinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="did != null" >
+        did,
+      </if>
+      <if test="didname != null" >
+        didname,
+      </if>
+      <if test="didattrib != null" >
+        didattrib,
+      </if>
+      <if test="didlen != null" >
+        didlen,
+      </if>
+      <if test="datainv != null" >
+        datainv,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="did != null" >
+        #{did,jdbcType=VARCHAR},
+      </if>
+      <if test="didname != null" >
+        #{didname,jdbcType=VARCHAR},
+      </if>
+      <if test="didattrib != null" >
+        #{didattrib,jdbcType=VARCHAR},
+      </if>
+      <if test="didlen != null" >
+        #{didlen,jdbcType=VARCHAR},
+      </if>
+      <if test="datainv != null" >
+        #{datainv,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.weeg.bean.DevDidInfo" >
+    update devdidinfo
+    <set >
+      <if test="didname != null" >
+        didname = #{didname,jdbcType=VARCHAR},
+      </if>
+      <if test="didattrib != null" >
+        didattrib = #{didattrib,jdbcType=VARCHAR},
+      </if>
+      <if test="didlen != null" >
+        didlen = #{didlen,jdbcType=VARCHAR},
+      </if>
+      <if test="datainv != null" >
+        datainv = #{datainv,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where did = #{did,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.weeg.bean.DevDidInfo" >
+    update devdidinfo
+    set didname = #{didname,jdbcType=VARCHAR},
+      didattrib = #{didattrib,jdbcType=VARCHAR},
+      didlen = #{didlen,jdbcType=VARCHAR},
+      datainv = #{datainv,jdbcType=VARCHAR}
+    where did = #{did,jdbcType=VARCHAR}
+  </update>
+</mapper>

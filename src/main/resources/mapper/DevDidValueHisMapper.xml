@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevDidValueHisMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevDidValueHis" >
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="childclassid" property="childclassid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.weeg.bean.DevDidValueHis" extends="BaseResultMap" >
+    <result column="upvalue" property="upvalue" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Blob_Column_List" >
+    upvalue
+  </sql>
+  <insert id="insert" parameterType="com.weeg.bean.DevDidValueHis" >
+    insert into devdidvalue_his (classid, childclassid, devserial, 
+      did, updatetime, upvalue
+      )
+    values (#{classid,jdbcType=VARCHAR}, #{childclassid,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, 
+      #{did,jdbcType=VARCHAR}, #{updatetime,jdbcType=TIMESTAMP}, #{upvalue,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.weeg.bean.DevDidValueHis" >
+    insert into devdidvalue_his
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="classid != null" >
+        classid,
+      </if>
+      <if test="childclassid != null" >
+        childclassid,
+      </if>
+      <if test="devserial != null" >
+        devserial,
+      </if>
+      <if test="did != null" >
+        did,
+      </if>
+      <if test="updatetime != null" >
+        updatetime,
+      </if>
+      <if test="upvalue != null" >
+        upvalue,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="classid != null" >
+        #{classid,jdbcType=VARCHAR},
+      </if>
+      <if test="childclassid != null" >
+        #{childclassid,jdbcType=VARCHAR},
+      </if>
+      <if test="devserial != null" >
+        #{devserial,jdbcType=VARCHAR},
+      </if>
+      <if test="did != null" >
+        #{did,jdbcType=VARCHAR},
+      </if>
+      <if test="updatetime != null" >
+        #{updatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="upvalue != null" >
+        #{upvalue,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

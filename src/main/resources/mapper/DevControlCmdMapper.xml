@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevControlCmdMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevControlCmd" >
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="devtype" property="devtype" jdbcType="VARCHAR" />
+    <result column="opttype" property="opttype" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="ctrlvalue" property="ctrlvalue" jdbcType="VARCHAR" />
+    <result column="ctrltype" property="ctrltype" jdbcType="VARCHAR" />
+    <result column="ctrltime" property="ctrltime" jdbcType="TIMESTAMP" />
+    <result column="ctrltime1" property="ctrltime1" jdbcType="VARCHAR" />
+  </resultMap>
+  <insert id="insert" parameterType="com.weeg.bean.DevControlCmd" >
+    insert into devcontrolcmd (classid, devserial, iotserial, 
+      devtype, opttype, did, 
+      ctrlvalue, ctrltype, ctrltime,ctrltime1,cmdFlag,cmdNo,cmdCache,cmdType,cmdData,reRead
+      )
+    values (#{classid,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, #{iotserial,jdbcType=VARCHAR}, 
+      #{devtype,jdbcType=VARCHAR}, #{opttype,jdbcType=VARCHAR}, #{did,jdbcType=VARCHAR}, 
+      #{ctrlvalue,jdbcType=VARCHAR}, #{ctrltype,jdbcType=VARCHAR}, #{ctrltime,jdbcType=TIMESTAMP},#{ctrltime1,jdbcType=TIMESTAMP},
+      #{cmdFlag,jdbcType=VARCHAR},#{cmdNo,jdbcType=VARCHAR},#{cmdCache,jdbcType=VARCHAR},#{cmdType,jdbcType=VARCHAR},#{cmdData,jdbcType=VARCHAR},
+      #{reRead,jdbcType=VARCHAR}
+      )
+  </insert>
+
+    <update id="updatecmdNo">
+  	update devcontrolcmd set cmdNo = '0',cmdFlag = '1',ctrlvalue = #{ctrlvalue,jdbcType=VARCHAR},ctrltype = #{random,jdbcType=VARCHAR}
+  	where devserial = #{devserial,jdbcType=VARCHAR} and cmdNo = #{cmdNo,jdbcType=VARCHAR} and cmdFlag = '0'
+  </update>
+  
+  <select id="selectBySerialandTime" resultType="com.weeg.bean.DevControlCmd">
+    select 
+    classid as classid,
+    devserial as devserial,
+    iotserial as iotserial,
+    devtype as devtype,
+    opttype as opttype,
+    did as did,
+    ctrlvalue as ctrlvalue,
+    ctrltype as ctrltype,
+    ctrltime as ctrltime,
+    ctrltime1 as ctrltime1,
+    cmdFlag as cmdFlag,
+    cmdNo as cmdNo,
+    cmdCache as cmdCache,
+    cmdType as cmdType,
+    cmdData as cmdData,
+    reRead as reRead
+    from devcontrolcmd
+    where devserial = #{devserial,jdbcType=VARCHAR} and ctrltime between #{startTime} and #{endTime} order by ctrltime desc
+  </select>
+  
+   <select id="selectBySerialandDid" resultType="com.weeg.bean.DevControlCmd">
+    select
+    classid as classid,
+    devserial as devserial,
+    iotserial as iotserial,
+    devtype as devtype,
+    opttype as opttype,
+    did as did,
+    ctrlvalue as ctrlvalue,
+    ctrltype as ctrltype,
+    ctrltime as ctrltime,
+    ctrltime1 as ctrltime1,
+    cmdFlag as cmdFlag,
+    cmdNo as cmdNo,
+    cmdCache as cmdCache,
+    cmdType as cmdType,
+    cmdData as cmdData,
+    reRead as reRead
+    from devcontrolcmd
+    where devserial = #{devserial,jdbcType=VARCHAR} and did = '3001' and ctrltime between #{startTime} and #{endTime} order by ctrltime desc
+  </select>
+  
+    <select id="selectBySerialandcmdFlag" resultType="com.weeg.bean.DevControlCmd">
+    select 
+    classid as classid,
+    devserial as devserial,
+    iotserial as iotserial,
+    devtype as devtype,
+    opttype as opttype,
+    did as did,
+    ctrlvalue as ctrlvalue,
+    ctrltype as ctrltype,
+    ctrltime as ctrltime,
+    ctrltime1 as ctrltime1,
+    cmdFlag as cmdFlag,
+    cmdNo as cmdNo,
+    cmdCache as cmdCache,
+    cmdType as cmdType,
+    cmdData as cmdData,
+    reRead as reRead
+    from devcontrolcmd
+    where devserial = #{devserial,jdbcType=VARCHAR} and cmdFlag = #{cmdFlag,jdbcType=VARCHAR} and did != '3001' and did != '3002' and did != '3003'
+    ORDER BY cmdNo
+  </select>
+  
+</mapper>

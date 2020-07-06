@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevDataInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevDataInfo" >
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="devtype" property="devtype" jdbcType="VARCHAR" />
+    <result column="data" property="data" jdbcType="VARCHAR" />
+    <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <!-- 根据客户序列号以及did，查询实时数据 -->
+  <select id="selectActualData" resultType="com.weeg.bean.DevDataInfo">
+		SELECT
+		devserial as devserial
+		,iotserial as iotserial
+		,did as did
+		,devtype as devtype
+		,data as data
+		,updatetime as updatetime
+		FROM devdatainfo where did=#{did} and devserial=#{devserial}
+	</select>
+  
+  
+  
+  
+  
+  
+</mapper>

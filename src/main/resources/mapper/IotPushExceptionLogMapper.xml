@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotPushExceptionLogMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.IotPushExceptionLog" >
+    <result column="pushsource" property="pushsource" jdbcType="VARCHAR" />
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="pushtime" property="pushtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.weeg.bean.IotPushExceptionLogWithBLOBs" extends="BaseResultMap" >
+    <result column="pushinfo" property="pushinfo" jdbcType="LONGVARCHAR" />
+    <result column="exceptinfo" property="exceptinfo" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Blob_Column_List" >
+    pushinfo, exceptinfo
+  </sql>
+  <insert id="insert" parameterType="com.weeg.bean.IotPushExceptionLogWithBLOBs" >
+    insert into iotpushexceptionlog (pushsource, classid, pushtime, 
+      pushinfo, exceptinfo)
+    values (#{pushsource,jdbcType=VARCHAR}, #{classid,jdbcType=VARCHAR}, #{pushtime,jdbcType=TIMESTAMP}, 
+      #{pushinfo,jdbcType=LONGVARCHAR}, #{exceptinfo,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.weeg.bean.IotPushExceptionLogWithBLOBs" >
+    insert into iotpushexceptionlog
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="pushsource != null" >
+        pushsource,
+      </if>
+      <if test="classid != null" >
+        classid,
+      </if>
+      <if test="pushtime != null" >
+        pushtime,
+      </if>
+      <if test="pushinfo != null" >
+        pushinfo,
+      </if>
+      <if test="exceptinfo != null" >
+        exceptinfo,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="pushsource != null" >
+        #{pushsource,jdbcType=VARCHAR},
+      </if>
+      <if test="classid != null" >
+        #{classid,jdbcType=VARCHAR},
+      </if>
+      <if test="pushtime != null" >
+        #{pushtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushinfo != null" >
+        #{pushinfo,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="exceptinfo != null" >
+        #{exceptinfo,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

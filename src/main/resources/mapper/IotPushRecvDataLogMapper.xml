@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotPushRecvDataLogMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.IotPushRecvDataLog" >
+    <result column="pushsource" property="pushsource" jdbcType="VARCHAR" />
+    <result column="classid" property="classid" jdbcType="VARCHAR" />
+    <result column="pushtime" property="pushtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.weeg.bean.IotPushRecvDataLog" extends="BaseResultMap" >
+    <result column="pushinfo" property="pushinfo" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Blob_Column_List" >
+    pushinfo
+  </sql>
+  <insert id="insert" parameterType="com.weeg.bean.IotPushRecvDataLog" >
+    insert into iotpushrecvdatalog (pushsource, classid, pushtime, 
+      pushinfo)
+    values (#{pushsource,jdbcType=VARCHAR}, #{classid,jdbcType=VARCHAR}, #{pushtime,jdbcType=TIMESTAMP}, 
+      #{pushinfo,jdbcType=LONGVARCHAR})
+  </insert>
+  <select id="selectByClassId" resultType="com.weeg.dao.IotPushRecvDataLogMapper">
+    select 
+    pushinfo as pushinfo,
+    classid as classid,
+    pushtime as pushtime
+    from iotpushrecvdatalog
+    where classid = #{classid,jdbcType=VARCHAR}
+  </select>
+</mapper>

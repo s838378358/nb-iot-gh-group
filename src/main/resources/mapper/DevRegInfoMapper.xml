@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevRegInfoMapper">
+	<resultMap id="BaseResultMap" type="com.weeg.bean.DevRegInfo">
+		<id column="imei" property="imei" jdbcType="VARCHAR" />
+		<result column="platformcode" property="platformcode"
+			jdbcType="VARCHAR" />
+		<result column="clientid" property="clientid"
+			jdbcType="VARCHAR" />
+		<result column="devserial" property="devserial"
+			jdbcType="VARCHAR" />
+		<result column="iotserial" property="iotserial"
+			jdbcType="VARCHAR" />
+		<result column="devtype" property="devtype" jdbcType="VARCHAR" />
+		<result column="cardid" property="cardid" jdbcType="VARCHAR" />
+		<result column="imsi" property="imsi" jdbcType="VARCHAR" />
+		<result column="regstatus" property="regstatus"
+			jdbcType="VARCHAR" />
+		<result column="regtime" property="regtime"
+			jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		imei, platformcode, clientid, devserial, iotserial,
+		devtype, cardid, imsi,
+		regstatus,
+		regtime
+	</sql>
+
+	<select id="selectByDevSerial"
+		resultType="com.weeg.bean.DevRegInfo">
+		select
+		platformcode as platformcode,
+		clientid as clientid,
+		devserial as devserial,
+		iotserial as iotserial,
+		devtype as devtype,
+		cardid as cardid,
+		imei as imei,
+		imsi as imsi,
+		regstatus as regstatus,
+		regtime as regtime
+		from devreginfo
+		where devserial =
+		#{devserial,jdbcType=VARCHAR}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from
+		devreginfo
+		where devserial = #{devserial,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="com.weeg.bean.DevRegInfo">
+		insert into devreginfo
+		(imei,platformcode,clientid,devserial,iotserial,devtype,cardid,imsi,regstatus,regtime)
+		values
+		(#{imei,jdbcType=VARCHAR},#{platformcode,jdbcType=VARCHAR},#{clientid,jdbcType=VARCHAR},#{devserial,jdbcType=VARCHAR},
+		#{iotserial,jdbcType=VARCHAR},
+		#{devtype,jdbcType=VARCHAR},#{cardid,jdbcType=VARCHAR},#{imsi,jdbcType=VARCHAR},#{regstatus,jdbcType=VARCHAR},#{regtime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<update id="updateByPrimaryKey"
+		parameterType="com.weeg.bean.DevRegInfo">
+		update devreginfo
+		set platformcode =
+		#{platformcode,jdbcType=VARCHAR},
+		clientid =
+		#{clientid,jdbcType=VARCHAR},
+		devserial =
+		#{devserial,jdbcType=VARCHAR},
+		iotserial =
+		#{iotserial,jdbcType=VARCHAR},
+		devtype = #{devtype,jdbcType=VARCHAR},
+		cardid = #{cardid,jdbcType=VARCHAR},
+		imsi = #{imsi,jdbcType=VARCHAR},
+		regstatus = #{regstatus,jdbcType=VARCHAR},
+		regtime =
+		#{regtime,jdbcType=TIMESTAMP}
+		where imei = #{imei,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateByImei" parameterType="java.lang.String">
+		update devreginfo
+		set iotserial = #{iotserial,jdbcType=VARCHAR}
+		where imei = #{imei,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectByImei"
+		resultType="com.weeg.bean.DevRegInfo">
+		select
+		platformcode as platformcode,
+		clientid as clientid,
+		devserial as devserial,
+		iotserial as iotserial,
+		devtype as devtype,
+		cardid as cardid,
+		imei as imei,
+		imsi as imsi,
+		regstatus as regstatus,
+		regtime as regtime
+		from devreginfo
+		where imei =
+		#{imei,jdbcType=VARCHAR}
+	</select>
+</mapper>

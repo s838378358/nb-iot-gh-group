@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotImeiStatusMapper">
+	<resultMap id="BaseResultMap" type="com.weeg.bean.IotImeiStatus">
+		<id column="imei" property="imei" jdbcType="VARCHAR" />
+		<result column="devserial" property="devserial" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+		<result column="at" property="at" jdbcType="VARCHAR" />
+		<result column="login_type" property="login_type" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="msg_signature" property="msg_signature"
+			jdbcType="VARCHAR" />
+		<result column="nonce" property="nonce" jdbcType="VARCHAR" />
+		<result column="statustime" property="statustime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<select id="selectBySerial" resultType="com.weeg.bean.IotImeiStatus">
+		select
+		imei as imei,
+		devserial as devserial,
+		status as status,
+		iotserial as iotserial,
+		at as at,
+		login_type as login_type,
+		type as type,
+		msg_signature as msg_signature,
+		nonce as nonce,
+		statustime as statustime
+		from iotimeistatus
+		where devserial = #{serial,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectByimei" resultType="com.weeg.bean.IotImeiStatus">
+		select
+		imei as imei,
+		devserial as devserial,
+		status as status,
+		iotserial as iotserial,
+		at as at,
+		login_type as login_type,
+		type as type,
+		msg_signature as msg_signature,
+		nonce as nonce,
+		statustime as statustime
+		from iotimeistatus
+		where imei = #{imei,jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insert" parameterType="com.weeg.bean.IotImeiStatus">
+		insert into iotimeistatus (imei, devserial, status, 
+      iotserial, at, login_type, 
+      type, msg_signature, nonce, 
+      statustime)
+    values (#{imei,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
+      #{iotserial,jdbcType=VARCHAR}, #{at,jdbcType=VARCHAR}, #{login_type,jdbcType=VARCHAR}, 
+      #{type,jdbcType=VARCHAR}, #{msg_signature,jdbcType=VARCHAR}, #{nonce,jdbcType=VARCHAR}, 
+      #{statustime,jdbcType=TIMESTAMP})
+	</insert>
+	
+	<update id="updateStatus">
+		update iotimeistatus set status = #{status,jdbcType=VARCHAR} where imei = #{imei,jdbcType=VARCHAR}
+	</update>
+    <delete id="deleteStatusByImei">
+		delete from iotimeistatus where imei = #{imei,jdbcType=VARCHAR}
+	</delete>
+
+</mapper>

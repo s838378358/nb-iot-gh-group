@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.IotImeistatusHisMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.IotImeiStatusHis" >
+    <result column="imei" property="imei" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="at" property="at" jdbcType="VARCHAR" />
+    <result column="loginType" property="login_type" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="msgSignature" property="msg_signature" jdbcType="VARCHAR" />
+    <result column="nonce" property="nonce" jdbcType="VARCHAR" />
+    <result column="statustime" property="statustime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <insert id="insert" parameterType="com.weeg.bean.IotImeiStatusHis" >
+    insert into iotimeistatus_his (imei, devserial, status, 
+      iotserial, at, login_type, 
+      type, msg_signature, nonce, 
+      statustime)
+    values (#{imei,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
+      #{iotserial,jdbcType=VARCHAR}, #{at,jdbcType=VARCHAR}, #{login_type,jdbcType=VARCHAR}, 
+      #{type,jdbcType=VARCHAR}, #{msg_signature,jdbcType=VARCHAR}, #{nonce,jdbcType=VARCHAR}, 
+      #{statustime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.weeg.bean.IotImeiStatusHis" >
+    insert into iotimeistatus_his
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="imei != null" >
+        imei,
+      </if>
+      <if test="devserial != null" >
+        devserial,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="iotserial != null" >
+        iotserial,
+      </if>
+      <if test="at != null" >
+        at,
+      </if>
+      <if test="login_type != null" >
+        login_type,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="msg_signature != null" >
+        msg_signature,
+      </if>
+      <if test="nonce != null" >
+        nonce,
+      </if>
+      <if test="statustime != null" >
+        statustime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="imei != null" >
+        #{imei,jdbcType=VARCHAR},
+      </if>
+      <if test="devserial != null" >
+        #{devserial,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="iotserial != null" >
+        #{iotserial,jdbcType=VARCHAR},
+      </if>
+      <if test="at != null" >
+        #{at,jdbcType=VARCHAR},
+      </if>
+      <if test="login_type != null" >
+        #{login_type,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="msg_signature != null" >
+        #{msg_signature,jdbcType=VARCHAR},
+      </if>
+      <if test="nonce != null" >
+        #{nonce,jdbcType=VARCHAR},
+      </if>
+      <if test="statustime != null" >
+        #{statustime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

@@ -1,0 +1,39 @@
+server:
+  port: 8092
+  servlet:
+    context-path: /NBWeegServer
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
+    username: sa
+    password: czweeg_2015
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    type: com.alibaba.druid.pool.DruidDataSource
+
+    #springboot 默认是不注入这些属性的 需要自己手动注入
+    #druid 数据源专有配置
+    initialSize: 10
+    minIdle: 5
+    maxActive: 100
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 1
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+
+    #配置监控统计拦截的filters, stat:监控统计、log4j:日志记录、wall:防御sql注入
+    filters: stat,wall,log4j
+    maxPoolPreparedStatementPerConnectionSize: 20
+    useGlobalDataSourceStat: true
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
+
+
+#整合mybatis
+mybatis:
+  type-aliases-package: com.weeg.bean
+  mapper-locations: classpath:mapper/*.xml
+

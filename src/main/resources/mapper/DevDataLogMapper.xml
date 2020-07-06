@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weeg.dao.DevDataLogMapper" >
+  <resultMap id="BaseResultMap" type="com.weeg.bean.DevDataLog" >
+    <result column="childclassid" property="childclassid" jdbcType="VARCHAR" />
+    <result column="devserial" property="devserial" jdbcType="VARCHAR" />
+    <result column="iotserial" property="iotserial" jdbcType="VARCHAR" />
+    <result column="did" property="did" jdbcType="VARCHAR" />
+    <result column="devtype" property="devtype" jdbcType="VARCHAR" />
+    <result column="data" property="data" jdbcType="VARCHAR" />
+    <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <insert id="insert" parameterType="com.weeg.bean.DevDataLog" >
+    insert into devdatalog (childclassid, devserial, iotserial, 
+      did, devtype, updatetime, 
+      data,table_data)
+    values (#{childclassid,jdbcType=VARCHAR}, #{devserial,jdbcType=VARCHAR}, #{iotserial,jdbcType=VARCHAR}, 
+      #{did,jdbcType=VARCHAR}, #{devtype,jdbcType=VARCHAR}, #{updatetime,jdbcType=TIMESTAMP}, 
+      #{data,jdbcType=LONGVARCHAR},#{tableData,jdbcType=LONGVARCHAR})
+  </insert>
+  
+  <select id="selectByChildclassId" resultType="com.weeg.bean.DevDataLog">
+    select 
+   childclassid as childclassid,
+    devserial as devserial,
+    iotserial as iotserial,
+    did as did,
+    devtype as devtype,
+    data as data,
+    table_data as tableData,
+    updatetime as updatetime
+    from devdatalog
+    where childclassid = #{childclassid,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectDataByDevserialAndDid" resultType="com.weeg.bean.DevDataLog">
+    select top 1
+    childclassid as childclassid,
+    devserial as devserial,
+    iotserial as iotserial,
+    did as did,
+    devtype as devtype,
+    data as data,
+    table_data as tableData,
+    updatetime as updatetime
+    from devdatalog
+    where devserial = #{devserial,jdbcType=VARCHAR} and did = #{did,jdbcType=VARCHAR} ORDER BY updatetime desc
+  </select>
+</mapper>
