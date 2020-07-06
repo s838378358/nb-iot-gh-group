@@ -216,7 +216,7 @@ public class AESUtil {
 	 * @throws @author yuyan
 	 * @date 2019年11月13日
 	 */
-	public String crc(String src) {
+	public static String crc(String src) {
 		DataFomat dataFomat = new DataFomat();
 		byte[] b = dataFomat.hex2byte(src);
 

@@ -612,7 +612,7 @@ public class CmdController {
 			String C = "82";
 			String DID = "3002";
 
-			String CRC = aesutil.crc(MID + C + DID + newresult);
+			String CRC = AESUtil.crc(MID + C + DID + newresult);
 			String tall = "16";
 			String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
 			System.out.println("cmd"+cmd);
@@ -692,7 +692,6 @@ public class CmdController {
 	 * @date 2019年11月13日
 	 */
 	public String cmdReadBody(String did) {
-		AESUtil aesutil = new AESUtil();
 		// 对于下行读数据指令，没有数据域，帧长度是12
 		String head = "68";
 		String T = "00";
@@ -702,7 +701,7 @@ public class CmdController {
 		// 控制域，对于下行数据，默认无后续帧，指令帧执行结果是0，读数据功能码：0100，拼接成10000100，转换成十六进制 84
 		String C = "84";
 		String DID = did;
-		String CRC = aesutil.crc(MID + C + DID);
+		String CRC = AESUtil.crc(MID + C + DID);
 		String tall = "16";
 		String cmd = head + T + V + L + MID + C + DID + CRC + tall;
 		return cmd;
@@ -720,7 +719,6 @@ public class CmdController {
 	 * @date 2019年11月13日
 	 */
 	public String cmdWriteBody(String did, String data,String reRead,String random,String keyvalue,String devserial,String IMEI) throws Exception {
-		AESUtil aesutil = new AESUtil();
 		DataFomat dataFomat = new DataFomat();
 		String D = DataBody(did, data,random,keyvalue,devserial,IMEI);
 		// 对于下行写数据指令，没有数据域，帧长度是12
@@ -732,17 +730,17 @@ public class CmdController {
 		String MID = "BB";
 
 		// 控制域，对于下行数据，默认无后续帧,不回读，指令帧执行结果是0，读数据功能码：0100，拼接成10000101，转换成十六进制 85
-		String C="";
+		String C;
 		if(reRead.equals("0")) {
 			C = "85";
 		}else {
-			//读数据功能码：1000，拼接成10001000，转换成十六进制 85
+			//读数据功能码：1000，拼接成10001000，转换成十六进制 88
 			C = "88";
 		}
 		String DID = did;
 
 		// 计算校验码
-		String CRC = aesutil.crc(MID + C + DID + D);
+		String CRC = AESUtil.crc(MID + C + DID + D);
 		// 帧尾
 		String tall = "16";
 		String cmd = head + T + V + L + MID + C + DID + D + CRC + tall;
@@ -761,7 +759,6 @@ public class CmdController {
 	 */
 	public String cmdRecodeBody(String did, String data,String random,String keyvalue,String devserial,String IMEI) throws Exception {
 		DataFomat dataFomat = new DataFomat();
-		AESUtil aesutil = new AESUtil();
 		String D = DataBody(did, data,random,keyvalue,devserial,IMEI);
 		// 对于下行写数据指令，没有数据域，帧长度是12
 		
@@ -777,7 +774,7 @@ public class CmdController {
 		String DID = did;
 		
 		// 计算校验码
-		String CRC = aesutil.crc(MID + C + DID + D);
+		String CRC = AESUtil.crc(MID + C + DID + D);
 		// 帧尾
 		String tall = "16";
 		String cmd = head + T + V + L + MID + C + DID + D + CRC + tall;
