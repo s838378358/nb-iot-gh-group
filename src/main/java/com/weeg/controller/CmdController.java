@@ -23,7 +23,7 @@ import java.util.UUID;
  * @date 2019年11月13日
  */
 @RestController
-@RequestMapping("weeg")
+@RequestMapping("/NBWeegServer/weeg")
 public class CmdController {
 	static Post post = new Post();
 //	String path1 = FileUtil.file("properties/data.properties").toString();

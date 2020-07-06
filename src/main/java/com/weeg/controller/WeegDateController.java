@@ -33,7 +33,7 @@ import java.util.List;
  * @date: 2019年11月5日 上午8:58:03
  */
 @RestController
-@RequestMapping("weeg")
+@RequestMapping("/NBWeegServer/weeg")
 public class WeegDateController {
 
     Logger logger = Logger.getLogger(WeegDateController.class);

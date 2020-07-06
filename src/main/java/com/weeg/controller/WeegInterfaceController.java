@@ -26,7 +26,7 @@ import java.util.List;
  * @date 2019年11月4日
  */
 @Controller
-@RequestMapping("weeg")
+@RequestMapping("/NBWeegServer/weeg")
 public class WeegInterfaceController {
 	static Post post = new Post();
 	Logger logger = Logger.getLogger(WeegInterfaceController.class);

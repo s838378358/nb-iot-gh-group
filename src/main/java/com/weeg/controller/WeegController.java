@@ -27,7 +27,7 @@ import java.util.Date;
  * @date: 2019年11月5日 下午12:50:39
  */
 @RestController
-@RequestMapping(value = "weeg")
+@RequestMapping("/NBWeegServer/weeg")
 public class WeegController {
 	static Post post = new Post();
 	Logger logger = Logger.getLogger(WeegController.class);

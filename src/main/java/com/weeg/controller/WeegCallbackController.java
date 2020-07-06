@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author: yuyan
  * @date: 2019年11月5日 下午1:14:04
  */
-@RestController()
-@RequestMapping(value = "weeg")
+@RestController
+@RequestMapping("/NBWeegServer/weeg")
 public class WeegCallbackController {
     //    String path1 = FileUtil.file("properties/data.properties").getPath();
 //    String path1 = "/properties/data.properties";
