@@ -16,4 +16,8 @@ public interface DevControlCmdMapper {
     int updatecmdNo(@Param(value = "cmdNo") int cmdNo, @Param(value = "devserial") String devserial, @Param(value = "ctrlvalue") String ctrlvalue, @Param(value = "random") String random);
 
     List<DevControlCmd> selectBySerialandcmdFlag(@Param(value = "devserial") String devserial, @Param(value = "cmdFlag") String cmdFlag);
+
+    int updateCmd0001(@Param("devserial") String devserial,@Param("data") String data);
+
+    DevControlCmd selectByDevserial(@Param("devserial") String devserial);
 }

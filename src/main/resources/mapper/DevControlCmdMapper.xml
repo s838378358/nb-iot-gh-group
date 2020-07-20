@@ -97,5 +97,30 @@
     where devserial = #{devserial,jdbcType=VARCHAR} and cmdFlag = #{cmdFlag,jdbcType=VARCHAR} and did != '3001' and did != '3002' and did != '3003'
     ORDER BY cmdNo
   </select>
-  
+
+  <update id="updateCmd0001" parameterType="map">
+      update devcontrolcmd set cmdData = #{data,jdbcType=VARCHAR} where devserial = #{devserial,jdbcType=VARCHAR} and did = '0001' and cmdFlag = '0' and cmdType = 'WData'
+  </update>
+    <select id="selectByDevserial" resultMap="BaseResultMap">
+        select
+        classid as classid,
+        devserial as devserial,
+        iotserial as iotserial,
+        devtype as devtype,
+        opttype as opttype,
+        did as did,
+        ctrlvalue as ctrlvalue,
+        ctrltype as ctrltype,
+        ctrltime as ctrltime,
+        ctrltime1 as ctrltime1,
+        cmdFlag as cmdFlag,
+        cmdNo as cmdNo,
+        cmdCache as cmdCache,
+        cmdType as cmdType,
+        cmdData as cmdData,
+        reRead as reRead
+        from devcontrolcmd
+        where devserial = #{devserial,jdbcType=VARCHAR} and did = '0001' and cmdType = 'WData' and cmdFlag = '0'
+    </select>
+
 </mapper>

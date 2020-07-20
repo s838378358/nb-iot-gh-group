@@ -39,5 +39,13 @@ public class DevControlCmdServiceImpl implements DevControlCmdService{
 		return devControlCmdMapper.selectBySerialandcmdFlag(devserial, cmdFlag);
 	}
 
-    
+	@Override
+	public int updateCmd0001(String devserial,String data) {
+		return devControlCmdMapper.updateCmd0001(devserial,data);
+	}
+
+	@Override
+	public DevControlCmd selectByDevserial(String devserial) {
+		return devControlCmdMapper.selectByDevserial(devserial);
+	}
 }

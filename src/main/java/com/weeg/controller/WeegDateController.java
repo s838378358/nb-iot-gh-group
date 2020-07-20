@@ -4,7 +4,6 @@ import com.weeg.bean.DevControlCmd;
 import com.weeg.bean.DevDataLog;
 import com.weeg.bean.IotImeiStatus;
 import com.weeg.bean.IotPushRecvReponse;
-import com.weeg.model.ResponseData;
 import com.weeg.service.DevControlCmdService;
 import com.weeg.service.DevDataLogService;
 import com.weeg.service.IotImeiStatusService;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -124,12 +122,13 @@ public class WeegDateController {
      * @date 2019年4月4日
      */
     @RequestMapping(value = "/getDataDetail")
-    public ResponseData getDataDetail(@RequestBody String body) {
+    public void getDataDetail(@RequestBody String body, HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
         JSONObject getBody = JSONObject.fromObject(body);
         String classid = getBody.getString("classid");
 //		classid="a309d01d-09a5-4c7a-be84-918a8cca4b31";
         JSONObject object = new JSONObject();
-        ResponseData responseData = null;
+
         try {
             // 获取对象列表
             DevDataLog dataLog = devDataLogService.selectByChildclassId(classid);
@@ -137,21 +136,16 @@ public class WeegDateController {
             object.put("result", true);
             object.put("data", dataLog);
             object.put("dataresponse", iotpushrecvreponse);
-            responseData = new ResponseData();
-            responseData.setMessage("查询成就");
-            responseData.setErrorCode2("0000");
-            responseData.setData(object.toString());
         } catch (Exception e) {
             object.put("result", false);
             object.put("data", "查询失败");
         }
-//        response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
-//        response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
-//        Writer writer = response.getWriter();
-//        writer.write(object.toString());// 将 字符串内容写入缓存
-//        writer.flush();// 将缓存输出
-//        writer.close();
-        return responseData;
+        response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
+        response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
+        Writer writer = response.getWriter();
+        writer.write(object.toString());// 将 字符串内容写入缓存
+        writer.flush();// 将缓存输出
+        writer.close();
     }
 
 

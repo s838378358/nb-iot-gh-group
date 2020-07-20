@@ -1,20 +1,19 @@
 package com.weeg.controller;
+
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.weeg.bean.*;
+import com.weeg.configurer.ErrorEnmus;
 import com.weeg.service.*;
 import com.weeg.util.*;
 import net.sf.json.JSONObject;
-import org.apache.logging.log4j.util.PropertiesUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +25,15 @@ import java.util.UUID;
  * @date 2019年11月13日
  */
 @RestController
-public class SendCmdControllerApi {
+public class SendCmdControllerApi extends CoreController{
+    //配置日志
+    private static final Logger LOG = LoggerFactory.getLogger(SendCmdControllerApi.class);
     static Post post = new Post();
+    //读取配置文件
+    //平台信息配置文件
+    Props props = PropsUtil.get("properties/data.properties");
+    //命令生成配置文件
+    Props cmdTypeProps = PropsUtil.get("properties/cmdType.properties");
     @Autowired
     DevRegInfoService devRegInfoService;
     @Autowired
@@ -41,49 +47,46 @@ public class SendCmdControllerApi {
     @Autowired
     DevSecretKeyService devSecretKeyService;
 
+
     @RequestMapping(value = "/sendCmd")
-    public void cmd(@RequestBody String body,HttpServletResponse response) throws Exception {
+    public Object cmd(@RequestBody String body) throws Exception {
+
         Date startTime = new Date();
-        JSONObject returnObj=new JSONObject();
+        //写命令才有的参数
+        String data = "";
         int cmdno;
         JSONObject getBody = JSONObject.fromObject(body);
-        String jsonOther = getBody.getString("jsonOther");
-
-        //命令类型  cmdType
-        String did = getBody.getString("cmdType");
-
-
         //设备号
         String serial = getBody.getString("drvFlag1");
-        //默认8990
-        //String drvFlag2 = getBody.getString("drvFlag2");
-        //命令类型   读、写、读写记录   根据did第一位判断是读还是写，0读，1写
-        Props props = PropsUtil.get("properties/cmdType.properties");
-        String cmdType = props.getStr("OPEN_VALUE");
-        System.out.println(cmdType);
+
+        //命令类型  cmdType
+        String paramDID = getBody.getString("cmdType");
+        //根据命令类型第一位，获取读或是写命令
+        String stat = paramDID.substring(0,1);
+        //根据命令类型后四位，获取did
+        String pubDID = paramDID.substring(1,6);
+
+        //获取配置文件中命令类型(读R、写W)
+        String cmdType = cmdTypeProps.getStr(stat);
+        //获取协议里的did
+        String did = cmdTypeProps.getStr(pubDID);
+
+        //param
+        String jsonOther = getBody.getString("jsonOther");
 
         //是否回读
         String reRead = JSONObject.fromObject(jsonOther).getString("reRead");
         //写命令数据域 data
-        String data = JSONObject.fromObject(jsonOther).getString("data");
+        String param = JSONObject.fromObject(jsonOther).getString("data");
+
 
         //根据设备序列号，获取设备对应信息
         DevRegInfo devRegInfo = devRegInfoService.selectByDevSerial(serial);
         String IMEI = devRegInfo.getImei();
         if(devRegInfo==null) {
-            returnObj.put("result", false);
-            returnObj.put("code", "");
-            returnObj.put("data", "");
-            returnObj.put("msg", serial+"号未查到对应的信息");
+            //号未查到对应的信息
+            return fail(ErrorEnmus.ERROR_10001.getCode(), ErrorEnmus.ERROR_10001.getMessage());
         }else {
-            // 读取配置文件，这样才可以得到当前设备对应的平台信息
-            Props dataProps = PropsUtil.get("properties/data.properties");
-            String value = dataProps.getStr(devRegInfo.getPlatformcode());
-//            String path = request.getSession().getServletContext().getRealPath("/");
-//            String path1 = (new File(path)).getParent();
-//            //获取data中platformcode对应的平台信息
-//            ReadPropertise readPropertise = new ReadPropertise();
-//            String value2 = readPropertise.readpro(path1, devRegInfo.getPlatformcode());
 
             //获取设备序列号 查询设备是否在线
             String devserial = devRegInfo.getDevserial();
@@ -91,41 +94,44 @@ public class SendCmdControllerApi {
             IotImeiStatus iotimeistatus = iotimeistatusService.selectBySerial(devserial);
             String status = iotimeistatus.getStatus();
 
+            //定义随机码
+            String random;
+            //定义密钥
+            String keyvalue;
+            //查询出随机码 和 密钥信息
+            String resclassid = iotPushRecvReponseService.selectClassid(devRegInfo.getDevserial(), "3001").getClassid();
+            String datas = devDataLogService.selectByChildclassId(resclassid).getData();
+            String datastr = JSONObject.fromObject(datas).getString("数据域");
+            //获取通讯随机码
+            random = JSONObject.fromObject(datastr).getString("通信随机码");
+            //获取密钥版本号
+            String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
+            //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
+            DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, devserial, IMEI);
+            keyvalue = devSecretKey.getKeyvalue();
+
+            //对下行的命令进行拼接
+            String cmd="";
+            if("RData".equals(cmdType)) {
+                //读状态数据
+                cmd = cmdReadBody(did);
+            }else if("WData".equals(cmdType)){
+                //根据data里参数，生成阀门开或者关  //openvalue:0,  closevalue:1
+                data = cmdTypeProps.getStr(param);
+                //写状态数据
+                cmd = cmdWriteBody(did,data,reRead,random,keyvalue,devserial,IMEI);
+            }else if("Record".equals(cmdType)){
+                //根据data里参数，生成阀门开或者关  //openvalue:0,  closevalue:1
+                data = cmdTypeProps.getStr(param);
+                //读记录数据
+                cmd = cmdRecodeBody(did,data,random,keyvalue,devserial,IMEI);
+            }
+
+            //如果设备在线 ，直接下发命令
             if("1".equals(status)) {
-                //如果设备在线 ，直接下发命令
 
-                String random = "";
-                String keyvalue = "";
-
-
-                //查询出随机码 和 密钥信息
-                IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(devRegInfo.getDevserial(), "3001");
-                String resclassid = iprr.getClassid();
-                DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
-                String datas = resdataLog.getData();
-                String datastr = JSONObject.fromObject(datas).getString("数据域");
-                //获取通讯随机码
-                random = JSONObject.fromObject(datastr).getString("通信随机码");
-                //获取密钥版本号
-                String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
-                //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
-                DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, devserial, IMEI);
-                keyvalue = devSecretKey.getKeyvalue();
-
-
-                //对下行的命令进行拼接
-                String cmd="";
-                if(cmdType.equals("RData")) {
-                    //读状态数据
-                    cmd = cmdReadBody(did);
-                }else if(cmdType.equals("WData")){
-                    //写状态数据
-                    cmd = cmdWriteBody(did,data,reRead,random,keyvalue,devserial,IMEI);
-                }else if(cmdType.equals("Record")){
-                    //读记录数据
-                    cmd = cmdRecodeBody(did,data,random,keyvalue,devserial,IMEI);
-                }
-
+                //得到配置文件当前设备对应的平台信息
+                String value = props.getStr(devRegInfo.getPlatformcode());
                 //拼接下发平台命令需要的信息
                 JSONObject params = new JSONObject();
                 params.put("NBId", devRegInfo.getIotserial());
@@ -134,9 +140,7 @@ public class SendCmdControllerApi {
                 params.put("operator", value);
 
                 // 向平台下发命令
-                String postUrl = dataProps.getStr(devRegInfo.getPlatformcode().substring(0, 1)+ "postDeviceCmdTou");
-//                String postUrl = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-//                String parasmstr = params.toString();
+                String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
                 String result = post.post(postUrl, params.toString());
 
                 if (JSONObject.fromObject(result).getString("errno").equals("0")) {
@@ -161,19 +165,15 @@ public class SendCmdControllerApi {
                     devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
                     devControlCmdService.insert(devControlCmd);
                     // 命令下发成功
-                    returnObj.put("result", true);
-                    returnObj.put("code", "");
-                    returnObj.put("data", "");
-                    returnObj.put("msg", "命令下发成功");
+                    return new Ok("2101","命令下发成功");
+
                 } else {
-                    returnObj.put("result", false);
-                    returnObj.put("code", "");
-                    returnObj.put("data", "");
-                    returnObj.put("msg", JSONObject.fromObject(result).getString("error"));
+                    //JSONObject.fromObject(result).getString("error") 平台返回的错误
+                    return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(result).getString("error"));
                 }
 
             }else {
-                //如果设备不在线，将命令存入数据库（缓存命令） devControlCmd.setcmdFlag(0)   0表示命令未下发，存入数据库      cmdno 表示未下发的命令条数
+                //如果设备不在线，将命令存入数据库（缓存命令） devControlCmd.setcmdFlag(0)  0表示命令未下发，存入数据库 cmdno 表示未下发的命令条数
                 //获取该设备未下发命令的条数
                 List<DevControlCmd> dctc = devControlCmdService.selectBySerialandcmdFlag(devserial,"0");
                 if(dctc==null || dctc.isEmpty()) {
@@ -202,252 +202,28 @@ public class SendCmdControllerApi {
                 devControlCmd.setCmdType(cmdType);
                 devControlCmd.setCmdData(data);
                 devControlCmd.setReRead(reRead);
-                devControlCmdService.insert(devControlCmd);
 
-                //拼接下发命令 将未下发的命令存入数据库
-                returnObj.put("result", false);
-                returnObj.put("code", "");
-                returnObj.put("data", "");
-                returnObj.put("msg", "设备不在线，命令已存入数据库");
-            }
-        }
-
-        response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
-        response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
-        Writer writer = response.getWriter();
-        writer.write(returnObj.toString());// 将 字符串内容写入缓存
-        writer.flush();// 将缓存输出
-        writer.close();
-    }
-
-    /**
-     * 2009写密钥命令，单独一个cmd
-     */
-    @RequestMapping(value = "cmd2009")
-    public void cmd2009(@RequestBody String body, HttpServletResponse response, HttpServletRequest request) throws Exception {
-        JSONObject getBody = JSONObject.fromObject(body);
-        Date startTime = new Date();
-        String serial = getBody.getString("serial");
-        String cmdType = getBody.getString("cmdType");
-        String did = getBody.getString("did");
-        String data = getBody.getString("data");
-        String reRead = getBody.getString("reRead");
-        int cmdno;
-
-        JSONObject returnObj=new JSONObject();
-        //根据设备序列号，获取设备对应信息
-        DevRegInfo devRegInfo = devRegInfoService.selectByDevSerial(serial);
-        String IMEI = devRegInfo.getImei();
-        if(devRegInfo==null) {
-            returnObj.put("result", false);
-            returnObj.put("code", "");
-            returnObj.put("data", "");
-            returnObj.put("msg", serial+"号未查到对应的信息");
-        }else {
-            // 读取配置文件，这样才可以得到当前设备对应的平台信息
-            String path = request.getSession().getServletContext().getRealPath("/");
-            String path1 = (new File(path)).getParent();
-            //获取data中platformcode对应的平台信息
-            ReadPropertise readPropertise = new ReadPropertise();
-            String value = readPropertise.readpro(path1, devRegInfo.getPlatformcode());
-
-            //获取设备序列号 查询设备是否在线
-            String devserial = devRegInfo.getDevserial();
-            //根据设备序列号，查询设备状态是否在线
-            IotImeiStatus iotimeistatus = iotimeistatusService.selectBySerial(devserial);
-            String status = iotimeistatus.getStatus();
-
-            //判断设备是否在线
-            if("1".equals(status)) {
-                //如果设备在线 ，直接下发命令
-                //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
-                IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(devRegInfo.getDevserial(),"3001");
-                String resclassid = iprr.getClassid();
-                DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
-                String datas = resdataLog.getData();
-                String datastr = JSONObject.fromObject(datas).getString("数据域");
-                //获取通讯随机码
-                String random = JSONObject.fromObject(datastr).getString("通信随机码");
-                //获取密钥版本号
-                String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
-                //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
-                DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname,devserial,IMEI);
-                String keyvalue = devSecretKey.getKeyvalue();
-
-
-                //判断是否是写 2009 修改密钥命令 如果是，按顺序下发 000E：00 关户，  2009修改密钥， 000E：01 开户 三条命令
-                if(did.equals("2009")){
-                    //先下发一条 开户状态 000E 00 关户命令
-                    String cmd000E = cmdWriteBody("000E","0","0",random,keyvalue,devserial,IMEI);
-                    JSONObject params000Eclose = new JSONObject();
-                    params000Eclose.put("NBId", devRegInfo.getIotserial());
-                    params000Eclose.put("imei", devRegInfo.getImei());
-                    params000Eclose.put("cmds", cmd000E);
-                    params000Eclose.put("operator", value);
-                    // 向平台下发命令
-                    String postUrl2 = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-                    String result2 = post.post(postUrl2, params000Eclose.toString());
-                    if (JSONObject.fromObject(result2).getString("errno").equals("0")) {
-                        //将下发成功的命令存入数据库 cmdflag = 1  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
-                        DevControlCmd devControlCmd2 = new DevControlCmd();
-                        //生成唯一识别码
-                        String classid2=UUID.randomUUID().toString();
-                        devControlCmd2.setClassid(classid2);
-                        devControlCmd2.setDevserial(serial);
-                        devControlCmd2.setIotserial(devRegInfo.getIotserial());
-                        devControlCmd2.setDevtype(devRegInfo.getDevtype());
-                        devControlCmd2.setOpttype(devRegInfo.getPlatformcode());
-                        devControlCmd2.setDid("000E");
-                        devControlCmd2.setCtrlvalue(cmd000E);
-                        devControlCmd2.setCtrltime(startTime);
-                        devControlCmd2.setCtrltype(random);
-                        //命令下发 cmdflag = 1
-                        devControlCmd2.setCmdFlag("1");
-                        //未下发命令条数 默认0
-                        cmdno = 0;
-                        devControlCmd2.setCmdNo(cmdno);
-                        devControlCmd2.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
-                        int cmd2 = devControlCmdService.insert(devControlCmd2);
-                        System.out.println("cmd2:"+cmd2);
-
-                        //当下发 000E命令成功后，继续下发 2009 命令。
-                        String cmd2009 = cmdWriteBody(did,data,reRead,random,keyvalue,devserial,IMEI);
-                        JSONObject params2009 = new JSONObject();
-                        params2009.put("NBId", devRegInfo.getIotserial());
-                        params2009.put("imei", devRegInfo.getImei());
-                        params2009.put("cmds", cmd2009);
-                        params2009.put("operator", value);
-                        // 向平台下发命令
-                        String postUrl3 = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-                        String result3 = post.post(postUrl3, params2009.toString());
-                        if (JSONObject.fromObject(result3).getString("errno").equals("0")) {
-                            //将下发成功的命令存入数据库 cmdflag = 1  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
-                            DevControlCmd devControlCmd3 = new DevControlCmd();
-                            //生成唯一识别码
-                            String classid3=UUID.randomUUID().toString();
-                            devControlCmd3.setClassid(classid3);
-                            devControlCmd3.setDevserial(serial);
-                            devControlCmd3.setIotserial(devRegInfo.getIotserial());
-                            devControlCmd3.setDevtype(devRegInfo.getDevtype());
-                            devControlCmd3.setOpttype(devRegInfo.getPlatformcode());
-                            devControlCmd3.setDid(did);
-                            devControlCmd3.setCtrlvalue(cmd2009);
-                            devControlCmd3.setCtrltime(startTime);
-                            devControlCmd3.setCtrltype(random);
-                            //命令下发 cmdflag = 1
-                            devControlCmd3.setCmdFlag("1");
-                            //未下发命令条数 默认0
-                            cmdno = 0;
-                            devControlCmd3.setCmdNo(cmdno);
-                            devControlCmd3.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
-                            int cmd3 = devControlCmdService.insert(devControlCmd3);
-                            System.out.println("cmd3:" + cmd3);
-
-                            //当下发2009成功以后，最后下发 000E 01 开户
-                            String cmd000Eopen = cmdWriteBody("000E","1","0",random,keyvalue,devserial,IMEI);
-                            JSONObject params000E2 = new JSONObject();
-                            params000E2.put("NBId", devRegInfo.getIotserial());
-                            params000E2.put("imei", devRegInfo.getImei());
-                            params000E2.put("cmds", cmd000Eopen);
-                            params000E2.put("operator", value);
-                            // 向平台下发命令
-                            String postUrl4 = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-                            String result4 = post.post(postUrl4, params000E2.toString());
-
-                            if(JSONObject.fromObject(result4).getString("errno").equals("0")){
-                                //开户01 命令下发成功 存入数据库
-                                DevControlCmd devControlCmd4 = new DevControlCmd();
-                                //生成唯一识别码
-                                String classid4=UUID.randomUUID().toString();
-                                devControlCmd4.setClassid(classid4);
-                                devControlCmd4.setDevserial(serial);
-                                devControlCmd4.setIotserial(devRegInfo.getIotserial());
-                                devControlCmd4.setDevtype(devRegInfo.getDevtype());
-                                devControlCmd4.setOpttype(devRegInfo.getPlatformcode());
-                                devControlCmd4.setDid(did);
-                                devControlCmd4.setCtrlvalue(cmd2009);
-                                devControlCmd4.setCtrltime(startTime);
-                                devControlCmd4.setCtrltype(random);
-                                //命令下发 cmdflag = 1
-                                devControlCmd4.setCmdFlag("1");
-                                //未下发命令条数 默认0
-                                cmdno = 0;
-                                devControlCmd4.setCmdNo(cmdno);
-                                devControlCmd4.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
-                                int cmd4 = devControlCmdService.insert(devControlCmd4);
-                                System.out.println("cmd3:" + cmd4);
-
-                                //所有命令下发成功，return
-                                returnObj.put("result", true);
-                                returnObj.put("code", "");
-                                returnObj.put("data", "");
-                                returnObj.put("msg", "命令下发成功");
-                            }else{
-                                returnObj.put("result", false);
-                                returnObj.put("code", "");
-                                returnObj.put("data", "");
-                                returnObj.put("msg", JSONObject.fromObject(result2).getString("error"));
-                            }
-                        }else{
-                            returnObj.put("result", false);
-                            returnObj.put("code", "");
-                            returnObj.put("data", "");
-                            returnObj.put("msg", JSONObject.fromObject(result2).getString("error"));
-                        }
-                    } else {
-                        returnObj.put("result", false);
-                        returnObj.put("code", "");
-                        returnObj.put("data", "");
-                        returnObj.put("msg", JSONObject.fromObject(result2).getString("error"));
+                //判断离线缓存命令是否为 0001 开关阀命令，如果为开关阀命令则只更新为最新命令，不新增。其他命令为新增！
+                if("0001".equals(did)){
+                    //先查询0001是否下发过，下发过则更新最新0001命令，没有则插入
+                    DevControlCmd devControlCmd1 = devControlCmdService.selectByDevserial(serial);
+                    if(devControlCmd1 == null){
+                        //新增离线命令
+                        devControlCmdService.insert(devControlCmd);
+                    }else {
+                        //更新开关阀最新命令(如果之前有下发过0001的命令)
+                        devControlCmdService.updateCmd0001(serial,data);
                     }
-
-                }
-            }else {
-                //如果设备不在线，将命令存入数据库（缓存命令） devControlCmd.setcmdFlag(0)   0表示命令未下发，存入数据库      cmdno 表示未下发的命令条数
-                //获取该设备未下发命令的条数
-                List<DevControlCmd> dctc = devControlCmdService.selectBySerialandcmdFlag(devserial,"0");
-                if(dctc==null || dctc.isEmpty()) {
-                    cmdno = 1;
                 }else {
-                    cmdno = Integer.valueOf(dctc.size()) + 1;
+                    //新增离线命令
+                    devControlCmdService.insert(devControlCmd);
                 }
-                //将未下发命令数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
-                DevControlCmd devControlCmd = new DevControlCmd();
-                //生成唯一识别码
-                String classid=UUID.randomUUID().toString();
-                devControlCmd.setClassid(classid);
-                devControlCmd.setDevserial(serial);
-                devControlCmd.setIotserial(devRegInfo.getIotserial());
-                devControlCmd.setDevtype(devRegInfo.getDevtype());
-                devControlCmd.setOpttype(devRegInfo.getPlatformcode());
-                devControlCmd.setDid(did);
-                devControlCmd.setCtrltime(startTime);
-                //命令下发 cmdflag = 0   0表示未下发
-                devControlCmd.setCmdFlag("0");
-                //未下发命令条数
-                devControlCmd.setCmdNo(cmdno);
-                devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
-                //将缓存命令存入数据库
-                devControlCmd.setCmdCache(getBody.toString());
-                devControlCmd.setCmdType(cmdType);
-                devControlCmd.setCmdData(data);
-                devControlCmd.setReRead(reRead);
-                devControlCmdService.insert(devControlCmd);
-
-                //拼接下发命令 将未下发的命令存入数据库
-                returnObj.put("result", false);
-                returnObj.put("code", "");
-                returnObj.put("data", "");
-                returnObj.put("msg", "设备不在线，命令已存入数据库");
+                //拼接下发命令 将未下发的命令存入数据库  设备不在线，命令已存入数据库
+                return fail(ErrorEnmus.ERROR_10002.getCode(), ErrorEnmus.ERROR_10002.getMessage());
             }
         }
-        response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
-        response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
-        Writer writer = response.getWriter();
-        writer.write(returnObj.toString());// 将 字符串内容写入缓存
-        writer.flush();// 将缓存输出
-        writer.close();
     }
+
 
     /**
      *  下发3002
@@ -455,8 +231,8 @@ public class SendCmdControllerApi {
      * @throws Exception
      */
     @RequestMapping(value = "response3002")
-    public void response3002(@RequestBody String data, HttpServletResponse response,HttpServletRequest request) throws Exception {
-        JSONObject returnObj=new JSONObject();
+    public Object response3002(@RequestBody String data) throws Exception {
+//        JSONObject returnObj=new JSONObject();
         DataFomat dataFomat = new DataFomat();
         AESUtil aesutil = new AESUtil();
         //设备号
@@ -632,14 +408,12 @@ public class SendCmdControllerApi {
             String CRC = aesutil.crc(MID + C + DID + newresult);
             String tall = "16";
             String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
-            System.out.println("cmd"+cmd);
+            LOG.info("cmd:"+cmd);
 
-            // 读取配置文件，这样才可以得到当前设备对应的平台信息
-            String path = request.getSession().getServletContext().getRealPath("/");
-            String path1 = (new File(path)).getParent();
+
             //获取data中platformcode对应的平台信息
-            ReadPropertise readPropertise = new ReadPropertise();
-            String value = readPropertise.readpro(path1, devRegInfo.getPlatformcode());
+            String value = props.getStr(devRegInfo.getPlatformcode());
+
             //拼接下发平台命令需要的信息
             JSONObject params = new JSONObject();
             params.put("NBId", devRegInfo.getIotserial());
@@ -647,7 +421,7 @@ public class SendCmdControllerApi {
             params.put("cmds", cmd);
             params.put("operator", value);
             // 向平台下发命令
-            String postUrl = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
+            String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
             String resultobj = post.post(postUrl, params.toString());
 
             if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
@@ -672,30 +446,16 @@ public class SendCmdControllerApi {
                 devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
                 devControlCmdService.insert(devControlCmd);
 
-                returnObj.put("result", true);
-                returnObj.put("code", "");
-                returnObj.put("data", "");
-                returnObj.put("msg", "命令下发成功");
+                // 命令下发成功
+                return new Ok("2101","命令下发成功");
             } else {
-                returnObj.put("result", false);
-                returnObj.put("code", "");
-                returnObj.put("data", "");
-                returnObj.put("msg", JSONObject.fromObject(resultobj).getString("error"));
+                //JSONObject.fromObject(result).getString("error") 平台返回的错误
+                return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(resultobj).getString("error"));
             }
         }else{
-            returnObj.put("result", false);
-            returnObj.put("code", "");
-            returnObj.put("data", "");
-            returnObj.put("msg","设备不在线，命令下发失败");
+            //拼接下发命令 将未下发的命令存入数据库  设备不在线，命令已存入数据库
+            return fail(ErrorEnmus.ERROR_10002.getCode(), ErrorEnmus.ERROR_10002.getMessage());
         }
-        // 设置响应头部,设置主体的编码格式是UTF-8
-        response.setHeader("content-type", "text/html;charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
-        Writer writer = response.getWriter();
-        System.out.println("结束调试:"+returnObj.toString());
-        writer.write(returnObj.toString());// 将 字符串内容写入缓存
-        writer.flush();// 将缓存输出
-        writer.close();
     }
 
     /**
@@ -712,8 +472,8 @@ public class SendCmdControllerApi {
         AESUtil aesutil = new AESUtil();
         // 对于下行读数据指令，没有数据域，帧长度是12
         String head = "68";
-        String T = "00";
-        String V = "01";
+        String T = "67";
+        String V = "0E";
         String L = String.format("%04x", 12).toUpperCase();
         String MID = "BB";
         // 控制域，对于下行数据，默认无后续帧，指令帧执行结果是0，读数据功能码：0100，拼接成10000100，转换成十六进制 84
@@ -743,8 +503,8 @@ public class SendCmdControllerApi {
         // 对于下行写数据指令，没有数据域，帧长度是12
         // 对于下行写数据指令，
         String head = "68";
-        String T = "00";
-        String V = "01";
+        String T = "67";
+        String V = "0E";
         String L = String.format("%04x", dataFomat.toBytes(D).length + 12).toUpperCase();
         String MID = "BB";
 
@@ -784,8 +544,8 @@ public class SendCmdControllerApi {
 
         // 对于下行写数据指令，
         String head = "68";
-        String T = "00";
-        String V = "01";
+        String T = "67";
+        String V = "0E";
         String L = String.format("%04x", dataFomat.toBytes(D).length + 12).toUpperCase();
         String MID = "BB";
 
@@ -1100,7 +860,6 @@ public class SendCmdControllerApi {
             ds.setDevserial(devserial);
             //将新密钥插入数据库中，默认为不启用状态
             int insertsecret = devSecretKeyService.insertnewsecret(ds);
-//			System.out.println(insertsecret);
             //新密钥 32位 不足32位的后面用0补齐
             if (hex.length() == 64) {
                 result = newkey + newkeyVER + hex;

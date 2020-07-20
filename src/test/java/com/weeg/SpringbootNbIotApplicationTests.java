@@ -1,36 +1,30 @@
-package com.weeg;
-
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class SpringbootNbIotApplicationTests {
-
-
-//    @Test
-//    void contextLoads() {
+//package com.weeg;
 //
+//import com.weeg.util.StandardizationDataPush;
+//import com.weeg.util.operationUtil;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//import java.util.HashMap;
+//import java.util.List;
+//import java.util.Map;
+//
+//@SpringBootTest
+//class SpringbootNbIotApplicationTests {
+//
+//    public static void main(String[] args) {
+////        StandardizationDataPush dataPush = new StandardizationDataPush();
+////        Map<String,Object> map = dataPush.dataMap();
+////        map.put("WSS","");
+////        boolean f = operationUtil.isMonthFirstDay();
+////        System.out.println(f);
+//        HashMap<String, Object> hashMap = new HashMap<>();
+//        hashMap.put("WSSrsrp","123");
+//        hashMap.put("WSSsnr","123");
+//        hashMap.put("CVISC","123");
+//        hashMap.put("BV","123");
+//        hashMap.put("SDV","123");
+//        List<Map<String,Object>> list = StandardizationDataPush.StandardizationData(hashMap);
+//        System.out.println(list);
 //    }
-
-    public static void main(String[] args) {
-
-
-//        int[] array = new int[1];
-//        array[0] = Integer.parseInt("31");
-//        System.out.println(array[0]);
-//        File file = FileUtil.file("properties/data.properties");
-//        String path1 = FileUtil.file("properties/data.properties").getPath();
-//        String path1 = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-//        String path1 = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-//        ServletContext s1= getServletContext();
-//        String temp=s1.getRealPath("/");
-//        String path1 = System.getProperty("properties/data.properties");
-//        System.out.println(path1);
-//        try{
-//            String path1 = FileUtils.readFileToString(file);
-//            System.out.println(path1);
-//        }catch (IOException e){
-//            e.printStackTrace();
-//        }
-    }
-
-}
+//
+//}

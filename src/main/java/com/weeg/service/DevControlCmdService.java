@@ -13,4 +13,8 @@ public interface DevControlCmdService {
 
     List<DevControlCmd> selectBySerialandcmdFlag(String devserial, String cmdFlag);
 
+    int updateCmd0001(String devserial,String data);
+
+    DevControlCmd selectByDevserial(String devserial);
+
 }
