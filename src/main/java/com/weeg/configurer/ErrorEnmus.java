@@ -121,7 +121,11 @@ public enum ErrorEnmus {
     /**
      * 10003
      */
-    ERROR_10003("10003","OtherMessage");
+    ERROR_10003("10003","OtherMessage"),
+    /**
+     * 10004
+     */
+    ERROR_10004("10004","请求失败");
 
 
     /**

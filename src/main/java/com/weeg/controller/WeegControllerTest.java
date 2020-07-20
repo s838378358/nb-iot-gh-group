@@ -16,7 +16,10 @@ import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 
@@ -29,7 +32,7 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/NBWeegServer/weeg")
-public class WeegController {
+public class WeegControllerTest {
     static Post post = new Post();
     //读取配置文件
     Props dataprops = PropsUtil.get("properties/data.properties");
@@ -85,9 +88,9 @@ public class WeegController {
 
             // 向平台进行注册，获取注册结果
             String RegistResult = post.post(registUrl, params.toString());
-
+            String result = JSONObject.fromObject(RegistResult).getString("result");
             // 网络请求失败，得到fail提示
-            if (RegistResult.equals("fail")) {
+            if (result.equals("false")) {
                 // 记录日志
                 LOG.info(serial + "," + new Date() + "," + "注册设备平台请求失败");
 
@@ -95,72 +98,69 @@ public class WeegController {
                 responseData.setResult(false);
                 responseData.setErrorCode1("2101");
                 responseData.setErrorCode2("00001");
-                responseData.setMessage(RegistResult);
+                responseData.setMessage(JSONObject.fromObject(RegistResult).getString("message"));
             } else {
                 // 平台请求成功，获取平台返回的信息，判断平台返回信息，如果是true，进行写入数据库操作
                 if (JSONObject.fromObject(RegistResult).getBoolean("result")) {
+                    // 平台注册成功并且数据库操作成功，表示设备完成注册成功
+                    LOG.info(serial + "," + new Date() + "," + "设备向NB平台进行注册，平台注册成功");
                     JSONObject resultObj = JSONObject.fromObject(RegistResult);
-
-                    // 将信息添加到数据库
                     // 获取NBID
                     String iotserial = resultObj.getString("data");
-
-                    DevRegInfo deRegInfoNew = new DevRegInfo();
-                    deRegInfoNew.setPlatformcode(operatorInfo);
-                    //设备序列号
-                    deRegInfoNew.setDevserial(serial);
-                    //NBID
-                    deRegInfoNew.setIotserial(iotserial);
-                    deRegInfoNew.setDevtype(deviceType);
-                    deRegInfoNew.setImei(imei);
-                    deRegInfoNew.setImsi(imsi);
-                    deRegInfoNew.setRegstatus("0");
-                    deRegInfoNew.setRegtime(new Date());
-
-                    //插入设备信息
-                    int insertResult = devRegInfoService.insert(deRegInfoNew);
-
-                    //插入设备默认密钥
-                    DevSecretKey devSecretKey = new DevSecretKey();
-                    devSecretKey.setImei(imei);
-                    devSecretKey.setKeyname("00");
-                    devSecretKey.setKeylength("10");
-                    devSecretKey.setKeyvalue("21213141516171811222324252627282");
-                    devSecretKey.setDefaultversion("0");
-                    devSecretKey.setDevtype(deviceType);
-                    devSecretKey.setUsekeyname("0");
-                    devSecretKey.setDevserial(serial);
-                    int insertDefaultSecretKey = devSecretKeyService.insertnewsecret(devSecretKey);
-
-                    //添加设备状态，默认status为0 ，设备离线状态
-                    IotImeiStatus iotImeiStatus = new IotImeiStatus();
-                    iotImeiStatus.setStatus("0");
-                    iotImeiStatus.setIotserial(iotserial);
-                    iotImeiStatus.setDevserial(serial);
-                    iotImeiStatus.setImei(imei);
-                    int n = iotImeiStatusService.insert(iotImeiStatus);
-
-
-                    // 判断数据库操作结果
-                    if (insertResult == 1 && insertDefaultSecretKey == 1 && n == 1) {
-                        // 平台注册成功并且数据库操作成功，表示设备完成注册成功
-                        LOG.info(serial + "," + new Date() + "," + "设备向NB平台进行注册，设备平台注册成功，数据库操作成功");
-
-
-                        //将设备信息标准化给weegdat
-                        JSONObject weegDatJSONObj = new JSONObject();
-                        weegDatJSONObj.put("driveId", "000001");
-                        weegDatJSONObj.put("drvFlag3", imei);
-                        weegDatJSONObj.put("nbId", iotserial);
-                        weegDatJSONObj.put("serial", serial);
-
+                    //将设备信息标准化给weegdat
+                    JSONObject weegDatJSONObj = new JSONObject();
+                    weegDatJSONObj.put("driveId", "000001");
+                    weegDatJSONObj.put("drvFlag3", imei);
+                    weegDatJSONObj.put("nbId", iotserial);
+                    weegDatJSONObj.put("serial", serial);
+                    //将设备信息标准化给weegdat
+                    try{
                         //获取 weegDatRegistUrl
                         String weegDatRegistUrl = dataprops.getStr("weegDatRegistUrl");
                         //请求
                         String weegDatRegistResult = post.post(weegDatRegistUrl, weegDatJSONObj.toString());
-
                         Ok ok = JSONUtil.toBean(weegDatRegistResult, Ok.class);
                         if ("00000".equals(ok.getErrorCode2())) {
+                            // 将信息添加到数据库
+                            DevRegInfo deRegInfoNew = new DevRegInfo();
+                            deRegInfoNew.setPlatformcode(operatorInfo);
+                            //设备序列号
+                            deRegInfoNew.setDevserial(serial);
+                            //NBID
+                            deRegInfoNew.setIotserial(iotserial);
+                            deRegInfoNew.setDevtype(deviceType);
+                            deRegInfoNew.setImei(imei);
+                            deRegInfoNew.setImsi(imsi);
+                            deRegInfoNew.setRegstatus("0");
+                            deRegInfoNew.setRegtime(new Date());
+
+                            //插入设备信息
+                            int insertResult = devRegInfoService.insert(deRegInfoNew);
+                            LOG.info("设备信息入库:"+insertResult);
+
+                            //插入设备默认密钥
+                            DevSecretKey devSecretKey = new DevSecretKey();
+                            devSecretKey.setImei(imei);
+                            devSecretKey.setKeyname("00");
+                            devSecretKey.setKeylength("10");
+                            devSecretKey.setKeyvalue("21213141516171811222324252627282");
+                            devSecretKey.setDefaultversion("0");
+                            devSecretKey.setDevtype(deviceType);
+                            devSecretKey.setUsekeyname("0");
+                            devSecretKey.setDevserial(serial);
+                            int insertDefaultSecretKey = devSecretKeyService.insertnewsecret(devSecretKey);
+                            LOG.info("设备默认密钥入库:"+insertDefaultSecretKey);
+
+                            //添加设备状态，默认status为0 ，设备离线状态
+                            IotImeiStatus iotImeiStatus = new IotImeiStatus();
+                            iotImeiStatus.setStatus("0");
+                            iotImeiStatus.setIotserial(iotserial);
+                            iotImeiStatus.setDevserial(serial);
+                            iotImeiStatus.setImei(imei);
+                            int n = iotImeiStatusService.insert(iotImeiStatus);
+                            LOG.info("设备默认状态入库:"+n);
+
+                            //设置返回参数
                             responseData.setResult(true);
                             responseData.setErrorCode1("2101");
                             responseData.setErrorCode2("00002");
@@ -173,18 +173,20 @@ public class WeegController {
                             responseData.setData(resultObj.getString("data"));
                             responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
                         }
-                    } else {
-                        responseData.setResult(false);
+                    }catch (Exception e){
+                        //设置返回参数
+                        responseData.setResult(true);
                         responseData.setErrorCode1("2101");
                         responseData.setErrorCode2("00004");
-                        responseData.setMessage("平台注册成功，数据库注册失败");
+                        responseData.setData(resultObj.getString("data"));
+                        responseData.setMessage("平台注册成功，数据标准化推送失败");
                     }
                 } else {
                     // 平台发送请求成功，但是注册失败！
                     responseData.setResult(false);
                     responseData.setErrorCode1("2101");
                     responseData.setErrorCode2("00005");
-                    responseData.setMessage(RegistResult);
+                    responseData.setMessage(JSONObject.fromObject(RegistResult).getString("message"));
                 }
             }
         } else {
@@ -250,12 +252,12 @@ public class WeegController {
             weegDatJSONObj.put("drvFlag3", imei);
             weegDatJSONObj.put("nbId", devRegInfo.getIotserial());
             weegDatJSONObj.put("serial", devRegInfo.getDevserial());
-            //获取 weegDatRegistUrl
-            String weegDatRemoveUrl = dataprops.getStr("weegDatRemoveUrl");
-            //请求
-            String weegDatRemoveResult = post.post(weegDatRemoveUrl, weegDatJSONObj.toString());
 
             try {
+                //获取 weegDatRegistUrl
+                String weegDatRemoveUrl = dataprops.getStr("weegDatRemoveUrl");
+                //请求
+                String weegDatRemoveResult = post.post(weegDatRemoveUrl, weegDatJSONObj.toString());
                 Ok ok = JSONUtil.toBean(weegDatRemoveResult, Ok.class);
                 if ("00000".equals(ok.getErrorCode2())) {
 

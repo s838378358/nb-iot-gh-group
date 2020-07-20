@@ -105,8 +105,8 @@ public class WeegCallbackController {
         ThreadUtil.execAsync(() -> {
             try {
 
-                StandardizationDataPush dataPush = new StandardizationDataPush();
-                Map<String,Object> ObjMap = dataPush.dataMap();
+//                StandardizationDataPush dataPush = new StandardizationDataPush();
+//                Map<String,Object> ObjMap = dataPush.dataMap();
 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                 Date date = new Date();
@@ -277,45 +277,46 @@ public class WeegCallbackController {
 
                         } else if (did.equals("3003")) {
 
+
+                            /**
+                             * 数据标准化推送暂时不用，先注释
+                             */
                             //数据标准化，推送至weegDat
 
                             //NB网络信号强度
-                            String RSRP = JSONObject.fromObject(j).getString("NB网络信号强度RSRP");
-                            String SNR = JSONObject.fromObject(j).getString("NB网络信号强度SNR");
-
-                            //当前累计气量
-                            String CVISC = JSONObject.fromObject(j).getString("当前累计气量");
-
-                            //阀门状态
-                            String devType = JSONObject.fromObject(j).getString("表状态");
-                            String SOTV = JSONObject.fromObject(devType).getString("阀门状态");
-
-                            //主电电池电压
-                            String BV = JSONObject.fromObject(j).getString("主电电池电压");
-
-                            //判断上报时间是否为每个月1号，（结算日） 来定义结算日体积
-                            boolean isMonthFirstDay = operationUtil.isMonthFirstDay();
-                            if(isMonthFirstDay){
-                                ObjMap.put("SDV",CVISC);
-                                LOG.info("结算日，用量："+CVISC);
-                            }else {
-                                ObjMap.put("SDV","");
-                            }
-
-                            //设置标准化推送数据
-                            ObjMap.put("WSSrsrp",RSRP);
-                            ObjMap.put("WSSsnr",SNR);
-                            ObjMap.put("CVISC",CVISC);
-                            ObjMap.put("SOTV",SOTV);
-                            ObjMap.put("BV",BV);
-
-                            //调用推送接口
-                            boolean f = StandardizationDataPush.dataPush(ObjMap,DevserialID);
-                            if (f){
-                                LOG.info("数据标准化推送成功" + ObjMap.toString());
-                            }else {
-                                LOG.info("数据标准化推送失败" + ObjMap.toString());
-                            }
+//                            String RSRP = JSONObject.fromObject(j).getString("NB网络信号强度RSRP");
+//                            String SNR = JSONObject.fromObject(j).getString("NB网络信号强度SNR");
+//
+//                            //当前累计气量
+//                            String CVISC = JSONObject.fromObject(j).getString("当前累计气量");
+//
+//                            //阀门状态
+//                            String devType = JSONObject.fromObject(j).getString("表状态");
+//                            String SOTV = JSONObject.fromObject(devType).getString("阀门状态");
+//
+//                            //主电电池电压
+//                            String BV = JSONObject.fromObject(j).getString("主电电池电压");
+//
+//                            //判断上报时间是否为每个月1号，（结算日） 来定义结算日体积
+//                            boolean isMonthFirstDay = operationUtil.isMonthFirstDay();
+//                            if(isMonthFirstDay){
+//                                ObjMap.put("SDV",CVISC);
+//                                LOG.info("结算日，用量："+CVISC);
+//                            }else {
+//                                ObjMap.put("SDV","");
+//                            }
+//
+//                            //设置标准化推送数据
+//                            ObjMap.put("WSSrsrp",RSRP);
+//                            ObjMap.put("WSSsnr",SNR);
+//                            ObjMap.put("CVISC",CVISC);
+//                            ObjMap.put("SOTV",SOTV);
+//                            ObjMap.put("BV",BV);
+//                            //调用推送接口
+//                            StandardizationDataPush objStandardization = new StandardizationDataPush();
+//                            Object objsta = objStandardization.dataPush(ObjMap,DevserialID);
+//
+//                            LOG.info("数据标准化推送信息:" + objsta.toString());
 
                             DevRegInfo regInfo2 = devRegInfoService.selectByImei(imei);
                             String devserial = regInfo2.getDevserial();

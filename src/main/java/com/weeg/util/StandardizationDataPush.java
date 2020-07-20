@@ -4,6 +4,8 @@ package com.weeg.util;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
+import com.weeg.configurer.ErrorEnmus;
+import com.weeg.controller.CoreController;
 import net.sf.json.JSONObject;
 
 import java.util.ArrayList;
@@ -15,7 +17,7 @@ import java.util.Map;
  * Created by SJ on 2020/7/13
  * 标准化数据推送信息
  */
-public class StandardizationDataPush {
+public class StandardizationDataPush extends CoreController {
     static Post post = new Post();
     //读取配置文件
     static Props dataprops = PropsUtil.get("properties/data.properties");
@@ -26,7 +28,7 @@ public class StandardizationDataPush {
      * @return
      */
 
-    public static boolean dataPush(Map<String,Object> data, String devserial) {
+    public Object dataPush(Map<String,Object> data, String devserial) {
 
         JSONObject jsonObject = new JSONObject();
 
@@ -44,14 +46,20 @@ public class StandardizationDataPush {
 
         //将数据标准化推送给weegDat
         String weegDatStandardizedRealDataUrl = dataprops.getStr("weegDatStandardizedRealData");
-        //请求
-        String weegDatRegistResult = post.post(weegDatStandardizedRealDataUrl, jsonObject.toString());
 
-        Ok ok = JSONUtil.toBean(weegDatRegistResult, Ok.class);
-        if ("00000".equals(ok.getErrorCode2())) {
-            return true;
-        } else {
-            return false;
+        try{
+            //请求
+            String weegDatRegistResult = post.post(weegDatStandardizedRealDataUrl, jsonObject.toString());
+            String result = weegDatRegistResult.replaceAll("\\t","");
+            String errorCode1 = JSONObject.fromObject(result).getString("errorCode1");
+            String message = JSONObject.fromObject(result).getString("message");
+            if ("0001".equals(errorCode1)){
+                return new Ok(weegDatRegistResult, Ok.class);
+            }else {
+                return fail(errorCode1, message);
+            }
+        }catch (Exception e){
+            return fail(ErrorEnmus.ERROR_10004.getCode(), ErrorEnmus.ERROR_10004.getMessage());
         }
     }
 

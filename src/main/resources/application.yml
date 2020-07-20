@@ -7,6 +7,7 @@ spring:
   id: 2101
   datasource:
     url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
+#    url: jdbc:sqlserver://58.216.223.222:1433; DatabaseName=NBDataGH
     username: sa
     password: czweeg_2015
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver

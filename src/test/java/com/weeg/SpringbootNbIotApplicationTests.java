@@ -1,7 +1,6 @@
 //package com.weeg;
 //
 //import com.weeg.util.StandardizationDataPush;
-//import com.weeg.util.operationUtil;
 //import org.springframework.boot.test.context.SpringBootTest;
 //
 //import java.util.HashMap;
@@ -10,6 +9,9 @@
 //
 //@SpringBootTest
 //class SpringbootNbIotApplicationTests {
+//
+//
+//
 //
 //    public static void main(String[] args) {
 ////        StandardizationDataPush dataPush = new StandardizationDataPush();
