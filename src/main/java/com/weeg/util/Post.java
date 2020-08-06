@@ -41,9 +41,10 @@ public class Post {
 			// 断开连接
 			connection.disconnect();
 			String response = sb.toString();
-			System.out.println("response:"+response);
+//			System.out.println("response:"+response);
 			return response;
 		} catch (IOException e) {
+			post(strURL,params);
 			e.printStackTrace();
 			return "fail";
 		}

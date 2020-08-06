@@ -199,6 +199,10 @@ public class CmdController {
 					//新增离线命令
 					devControlCmdService.insert(devControlCmd);
 				}
+				returnObj.put("result", false);
+				returnObj.put("code", "");
+				returnObj.put("data", "");
+				returnObj.put("msg","设备不在线,命令已存库！");
 			}
 		}
 		response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
@@ -621,14 +625,11 @@ public class CmdController {
 			String CRC = AESUtil.crc(MID + C + DID + newresult);
 			String tall = "16";
 			String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
-			System.out.println("cmd"+cmd);
+//			System.out.println("cmd"+cmd);
 
 			// 读取配置文件，这样才可以得到当前设备对应的平台信息
-			String path = request.getSession().getServletContext().getRealPath("/");
-			String path1 = (new File(path)).getParent();
-			//获取data中platformcode对应的平台信息
-			ReadPropertise readPropertise = new ReadPropertise();
-			String value = readPropertise.readpro(path1, devRegInfo.getPlatformcode());
+			String value = props.getStr(devRegInfo.getPlatformcode());
+
 			//拼接下发平台命令需要的信息
 			JSONObject params = new JSONObject();
 			params.put("NBId", devRegInfo.getIotserial());
@@ -636,10 +637,10 @@ public class CmdController {
 			params.put("cmds", cmd);
 			params.put("operator", value);
 			// 向平台下发命令
-			String postUrl = readPropertise.readpro(path1, devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-			String resultobj = post.post(postUrl, params.toString());
+			String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+			String result = post.post(postUrl, params.toString());
 
-			if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
+			if (JSONObject.fromObject(result).getString("errno").equals("0")) {
 				//命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
 				DevControlCmd devControlCmd=new DevControlCmd();
 				//生成唯一识别码
@@ -669,7 +670,7 @@ public class CmdController {
 				returnObj.put("result", false);
 				returnObj.put("code", "");
 				returnObj.put("data", "");
-				returnObj.put("msg", JSONObject.fromObject(resultobj).getString("error"));
+				returnObj.put("msg", JSONObject.fromObject(result).getString("error"));
 			}
 		}else{
 			returnObj.put("result", false);
@@ -681,7 +682,7 @@ public class CmdController {
 		response.setHeader("content-type", "text/html;charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
 		Writer writer = response.getWriter();
-		System.out.println("结束调试:"+returnObj.toString());
+//		System.out.println("结束调试:"+returnObj.toString());
 		writer.write(returnObj.toString());// 将 字符串内容写入缓存
 		writer.flush();// 将缓存输出
 		writer.close();

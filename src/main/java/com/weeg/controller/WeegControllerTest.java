@@ -88,9 +88,8 @@ public class WeegControllerTest {
 
             // 向平台进行注册，获取注册结果
             String RegistResult = post.post(registUrl, params.toString());
-            String result = JSONObject.fromObject(RegistResult).getString("result");
             // 网络请求失败，得到fail提示
-            if (result.equals("false")) {
+            if ("false".equals(JSONObject.fromObject(RegistResult).getString("result"))) {
                 // 记录日志
                 LOG.info(serial + "," + new Date() + "," + "注册设备平台请求失败");
 
@@ -107,20 +106,20 @@ public class WeegControllerTest {
                     JSONObject resultObj = JSONObject.fromObject(RegistResult);
                     // 获取NBID
                     String iotserial = resultObj.getString("data");
-                    //将设备信息标准化给weegdat
-                    JSONObject weegDatJSONObj = new JSONObject();
-                    weegDatJSONObj.put("driveId", "000001");
-                    weegDatJSONObj.put("drvFlag3", imei);
-                    weegDatJSONObj.put("nbId", iotserial);
-                    weegDatJSONObj.put("serial", serial);
+//                    //将设备信息标准化给weegdat
+//                    JSONObject weegDatJSONObj = new JSONObject();
+//                    weegDatJSONObj.put("driveId", "000001");
+//                    weegDatJSONObj.put("drvFlag3", imei);
+//                    weegDatJSONObj.put("nbId", iotserial);
+//                    weegDatJSONObj.put("serial", serial);
                     //将设备信息标准化给weegdat
                     try{
-                        //获取 weegDatRegistUrl
-                        String weegDatRegistUrl = dataprops.getStr("weegDatRegistUrl");
-                        //请求
-                        String weegDatRegistResult = post.post(weegDatRegistUrl, weegDatJSONObj.toString());
-                        Ok ok = JSONUtil.toBean(weegDatRegistResult, Ok.class);
-                        if ("00000".equals(ok.getErrorCode2())) {
+//                        //获取 weegDatRegistUrl
+//                        String weegDatRegistUrl = dataprops.getStr("weegDatRegistUrl");
+//                        //请求
+//                        String weegDatRegistResult = post.post(weegDatRegistUrl, weegDatJSONObj.toString());
+//                        Ok ok = JSONUtil.toBean(weegDatRegistResult, Ok.class);
+//                        if ("00000".equals(ok.getErrorCode2())) {
                             // 将信息添加到数据库
                             DevRegInfo deRegInfoNew = new DevRegInfo();
                             deRegInfoNew.setPlatformcode(operatorInfo);
@@ -165,14 +164,15 @@ public class WeegControllerTest {
                             responseData.setErrorCode1("2101");
                             responseData.setErrorCode2("00002");
                             responseData.setData(resultObj.getString("data"));
-                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送成功");
-                        } else {
-                            responseData.setResult(false);
-                            responseData.setErrorCode1("2101");
-                            responseData.setErrorCode2("00003");
-                            responseData.setData(resultObj.getString("data"));
-                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
-                        }
+//                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送成功");
+                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功");
+//                        } else {
+//                            responseData.setResult(false);
+//                            responseData.setErrorCode1("2101");
+//                            responseData.setErrorCode2("00003");
+//                            responseData.setData(resultObj.getString("data"));
+//                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
+//                        }
                     }catch (Exception e){
                         //设置返回参数
                         responseData.setResult(true);
@@ -246,20 +246,20 @@ public class WeegControllerTest {
             // 拼接请求内容，将需要下发的命令提交
             Post post = new Post();
 
-            //将设备信息标准化给weegdat
-            JSONObject weegDatJSONObj = new JSONObject();
-            weegDatJSONObj.put("driveId", "000001");
-            weegDatJSONObj.put("drvFlag3", imei);
-            weegDatJSONObj.put("nbId", devRegInfo.getIotserial());
-            weegDatJSONObj.put("serial", devRegInfo.getDevserial());
+//            //将设备信息标准化给weegdat
+//            JSONObject weegDatJSONObj = new JSONObject();
+//            weegDatJSONObj.put("driveId", "000001");
+//            weegDatJSONObj.put("drvFlag3", imei);
+//            weegDatJSONObj.put("nbId", devRegInfo.getIotserial());
+//            weegDatJSONObj.put("serial", devRegInfo.getDevserial());
 
             try {
-                //获取 weegDatRegistUrl
-                String weegDatRemoveUrl = dataprops.getStr("weegDatRemoveUrl");
-                //请求
-                String weegDatRemoveResult = post.post(weegDatRemoveUrl, weegDatJSONObj.toString());
-                Ok ok = JSONUtil.toBean(weegDatRemoveResult, Ok.class);
-                if ("00000".equals(ok.getErrorCode2())) {
+//                //获取 weegDatRegistUrl
+//                String weegDatRemoveUrl = dataprops.getStr("weegDatRemoveUrl");
+//                //请求
+//                String weegDatRemoveResult = post.post(weegDatRemoveUrl, weegDatJSONObj.toString());
+//                Ok ok = JSONUtil.toBean(weegDatRemoveResult, Ok.class);
+//                if ("00000".equals(ok.getErrorCode2())) {
 
                     // 初始化请求地址对象
                     String OperatorInfo = devRegInfo.getPlatformcode();
@@ -268,7 +268,7 @@ public class WeegControllerTest {
                     // 从平台发送删除设备信息请求
                     String result = post.post(postUrl, params.toString());
 
-                    if (result.equals("fail")) {
+                    if ("false".equals(JSONObject.fromObject(result).getString("result"))) {
                         LOG.info(deviceSerial + "," + new Date() + "," + "删除设备平台请求失败");
 
                         // 请求失败，result 为 false
@@ -291,12 +291,14 @@ public class WeegControllerTest {
                                 responseData.setResult(true);
                                 responseData.setErrorCode1("2101");
                                 responseData.setErrorCode2("00003");
-                                responseData.setMessage("平台设备成功删除，数据库删除成功，数据标准化推送成功");
+//                                responseData.setMessage("平台设备成功删除，数据库删除成功，数据标准化推送成功");
+                                responseData.setMessage("平台设备成功删除，数据库删除成功");
                             } else {
                                 responseData.setResult(false);
                                 responseData.setErrorCode1("2101");
                                 responseData.setErrorCode2("00004");
-                                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送成功");
+//                                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送成功");
+                                responseData.setMessage("平台设备成功删除，数据库删除失败");
                             }
                         } else {
                             responseData.setResult(false);
@@ -305,17 +307,18 @@ public class WeegControllerTest {
                             responseData.setMessage("平台删除失败，" + JSONObject.fromObject(result).getString("message"));
                         }
                     }
-                }else {
-                    responseData.setResult(false);
-                    responseData.setErrorCode1("2101");
-                    responseData.setErrorCode2("00006");
-                    responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
-                }
+//                }else {
+//                    responseData.setResult(false);
+//                    responseData.setErrorCode1("2101");
+//                    responseData.setErrorCode2("00006");
+//                    responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
+//                }
             } catch (Exception e) {
                 responseData.setResult(false);
                 responseData.setErrorCode1("2101");
                 responseData.setErrorCode2("00007");
-                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送失败");
+//                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送失败");
+                responseData.setMessage("平台设备删除失败，数据库删除失败");
             }
         }
         return responseData;

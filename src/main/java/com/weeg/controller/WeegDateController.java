@@ -9,7 +9,6 @@ import com.weeg.service.DevDataLogService;
 import com.weeg.service.IotImeiStatusService;
 import com.weeg.service.IotPushRecvReponseService;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +33,8 @@ import java.util.List;
 @RequestMapping("/NBWeegServer/weeg")
 public class WeegDateController {
 
-    Logger logger = Logger.getLogger(WeegDateController.class);
+    //配置日志
+//    private static final Logger LOG = LoggerFactory.getLogger(WeegDateController.class);
     @Autowired
     IotPushRecvReponseService iotPushRecvReponseService;
     @Autowired
@@ -65,7 +65,7 @@ public class WeegDateController {
         String startTime = getBody.getString("startTime");
 
         // 记录日志，操作人员在当前时间登录
-        logger.debug(serial + "获取设备数据历史列表，时间间隔：" + startTime + "至今");
+//        LOG.info(serial + "获取设备数据历史列表，时间间隔：" + startTime + "至今");
 
         // 获取当前时间，作为查询截止的时间
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -104,7 +104,7 @@ public class WeegDateController {
         response.setHeader("content-type", "text/html;charset=UTF-8");// 设置响应头部,设置主体的编码格式是UTF-8
         response.setCharacterEncoding("UTF-8");// 设置传输的编码格式
         Writer writer = response.getWriter();
-        System.out.println("开始调试" + object.toString());
+//        System.out.println("开始调试" + object.toString());
         writer.write(object.toString());// 将 字符串内容写入缓存
         writer.flush();// 将缓存输出
         writer.close();

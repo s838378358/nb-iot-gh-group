@@ -6,10 +6,11 @@ server:
 spring:
   id: 2101
   datasource:
-    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
-#    url: jdbc:sqlserver://58.216.223.222:1433; DatabaseName=NBDataGH
+    url: jdbc:sqlserver://localhost:1433; DatabaseName=NBDataGH
+#    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
+    password: Administrator123
+    #    password: czweeg_2015
     username: sa
-    password: czweeg_2015
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     type: com.alibaba.druid.pool.DruidDataSource
 
@@ -43,4 +44,4 @@ logging:
   level:
     root : info
   file:
-    name: D:/logs/nb-iot-gh-group-log.log
+    name: E:/logs/nb-iot-gh-group-log.log

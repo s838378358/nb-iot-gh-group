@@ -181,24 +181,24 @@ public class WeegCallbackController {
                         if (did.equals("3001")) {
 
                             String keyname = JSONObject.fromObject(j).getString("密钥版本号");
-                            LOG.info("当前密钥版本号"+keyname);
+//                            LOG.info("当前密钥版本号"+keyname);
 
                             //更新 当前版本密钥为启用 必定执行
                             int upnewkey = devSecretKeyService.updatenewusekeynameopen(imei, DevserialID, keyname);
-                            LOG.info("当前版本密钥是否启用"+upnewkey);
+//                            LOG.info("当前版本密钥是否启用"+upnewkey);
 
                             //更新 根据密钥版本，更新另外一个密钥为不启用
                             int upoldkey = devSecretKeyService.updateoldusekeynameclose(imei, DevserialID, keyname);
-                            LOG.info("非当前版本密钥是否停用"+upoldkey);
+//                            LOG.info("非当前版本密钥是否停用"+upoldkey);
 
                             //根据密钥版本号以及IMEI号, 数据库执行删除老版本密钥(默认版本除外)
                             int deleteSecretKeyByImei = devSecretKeyService.delOtherSecretKey(imei, keyname);
-                            LOG.info("删除老版本密钥(默认版本除外)"+deleteSecretKeyByImei);
+//                            LOG.info("删除老版本密钥(默认版本除外)"+deleteSecretKeyByImei);
 
                             //如果设备上报上来的是3001命令，先去获取3001里面设备的密钥版本号，查询对应的密钥参数，并启用新版本密钥，停用老版本密钥
                             DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, DevserialID, imei);
                             keyvalue = devSecretKey.getKeyvalue();
-                            LOG.info("密钥："+keyvalue);
+//                            LOG.info("密钥："+keyvalue);
 
                         } else {
                             //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
@@ -210,7 +210,13 @@ public class WeegCallbackController {
                             //                    //获取密钥版本号
                             String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
                             //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
-                            DevSecretKey devSecretKey = devSecretKeyService.selectSecretKeyvalue(keyname, DevserialID, imei);
+                            DevSecretKey devSecretKey = null;
+                            try {
+                                devSecretKey = devSecretKeyService.selectSecretKeyvalue(keyname, DevserialID, imei);
+                            } catch (Exception e) {
+                                LOG.info("查询密钥异常："+"密钥>>>"+keyname+"设备号>>>"+DevserialID+"imei>>>"+imei);
+                                e.printStackTrace();
+                            }
                             keyvalue = devSecretKey.getKeyvalue();
                         }
 
@@ -229,8 +235,10 @@ public class WeegCallbackController {
 
                             // 将回应数据向平台下发
                             String postUrl = dataprops.getStr(regInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+
                             String result = post.post(postUrl, params.toString());
 
+                             LOG.info("3001回复请求"+params.toString());
                             //对返回数据进行判断
 
                             if (JSONObject.fromObject(result).getString("errno").equals("0")) {
@@ -389,7 +397,7 @@ public class WeegCallbackController {
                                 }
                             }else {
                                 //没有缓存命令，线程等待2秒，下发3002
-                                ThreadUtil.sleep(2000);
+//                                ThreadUtil.sleep(8000);
                                 ResponseController responseController = new ResponseController();
                                 responseController.response3002(devSecretKeyService,devDataLogService,iotPushRecvReponseService,
                                         devControlCmdService,devRegInfoService,iotimeistatusService,devserial);
@@ -467,7 +475,8 @@ public class WeegCallbackController {
                                 }
                             }else {
                                 //没有缓存命令，线程等待2秒，下发3002
-                                ThreadUtil.sleep(2000);
+//                                ThreadUtil.sleep(8000);
+                                ThreadUtil.waitForDie();
                                 ResponseController responseController = new ResponseController();
                                 responseController.response3002(devSecretKeyService,devDataLogService,iotPushRecvReponseService,
                                         devControlCmdService,devRegInfoService,iotimeistatusService,devserial);
@@ -508,7 +517,7 @@ public class WeegCallbackController {
                             iotimeistatushis.setStatustime(new Date());
                             iotimeistatushisService.insert(iotimeistatushis);
                         } else {
-                            System.out.println("非法设备状态数据！");
+//                            System.out.println("非法设备状态数据！");
                         }
 
                     } else {
@@ -742,6 +751,7 @@ public class WeegCallbackController {
             String body = "";
             int length = b.length / 16;
 
+            byte[] resultBytes = new byte[b.length];
             // 将密文按照16的长度进行分割
             for (int i = 0; i < length; i++) {
                 // 创建一个长度是16的数组,用于存放每一段数组
@@ -759,10 +769,13 @@ public class WeegCallbackController {
             byte[] b2 = dataFomat.toBytes(body);
 
             // 将byte转换成string
+            String strdata3 = "";
             String[] binaryData3 = new String[b2.length];
             for (int i = 0; i < b2.length; i++) {
                 binaryData3[i] = dataFomat.toHex(b2[i]);
+                strdata3 += binaryData3[i];
             }
+//            System.out.println(strdata3);
 
             // 1、时钟
             object.put("时钟", binaryData3[0] + binaryData3[1] + binaryData3[2] + binaryData3[3] + binaryData3[4]
@@ -829,20 +842,23 @@ public class WeegCallbackController {
 //                for (int i = 16; i < 20; i++) {
 //                    tableStatus += binaryData3[i];
 //                }
-            byte[] bytes = dataFomat.toBytes(binaryData3[16]);
-            byte byte1 = bytes[0];
-            String byte1tobit = dataFomat.byteToBit(byte1);
-            char[] bittochar = byte1tobit.toCharArray();
-            String[] stb3 = new String[bittochar.length];
-            for (int i = 0; i < stb1.length; i++) {
-                stb3[i] = String.valueOf(bittochar[i]);
-            }
+//            byte[] bytes = dataFomat.toBytes(binaryData3[16]);
+//            byte byte1 = bytes[0];
+//
+//            //byte1 & 0x03
+//            String byte1tobit = dataFomat.byteToBit(byte1);
+//            char[] bittochar = byte1tobit.toCharArray();
+//            String[] stb3 = new String[bittochar.length];
+//            for (int i = 0; i < stb1.length; i++) {
+//                stb3[i] = String.valueOf(bittochar[i]);
+//            }
             JSONObject stb3object = new JSONObject();
-            if("00".equals(stb3[0]+stb3[1])){
+
+            if("00".equals(binaryData3[16])){
                 stb3object.put("阀门状态","开阀");
-            }else if ("01".equals(stb3[0]+stb3[1])){
+            }else if ("01".equals(binaryData3[16])){
                 stb3object.put("阀门状态","关阀");
-            }else if ("11".equals(stb3[0]+stb3[1])){
+            }else if ("03".equals(binaryData3[16])){
                 stb3object.put("阀门状态","异常");
             }
             object.put("表厂自定义表状态",stb3object);
@@ -1470,7 +1486,7 @@ public class WeegCallbackController {
                     dataobject.put("读每小时用气记录天数", binaryData3[3]);
                     array.add(dataobject);
                     String s1 = bindata.substring(i * 192, (i + 1) * 192);
-                    String s2[] = s1.split("");
+                    String[] s2 = s1.split("");
                     int m = 1;
                     for (int j = 0; j < 192; j = j + 8) {
                         JSONObject db = new JSONObject();
@@ -1745,7 +1761,7 @@ public class WeegCallbackController {
         String DID = did;
 
         // 计算校验码
-        String CRC = aesutil.crc(MID + C + DID + D);
+        String CRC = AESUtil.crc(MID + C + DID + D);
         // 帧尾
         String tall = "16";
         String cmd = head + T + V + L + MID + C + DID + D + CRC + tall;
@@ -1870,7 +1886,7 @@ public class WeegCallbackController {
         String C = "81";
         String DID = "3001";
 
-        String CRC = aesutil.crc(MID + C + DID + D);
+        String CRC = AESUtil.crc(MID + C + DID + D);
         String tall = "16";
         String cmd = head + T + V + L + MID + C + DID + D + CRC + tall;
 //        System.out.println("cmd" + cmd);

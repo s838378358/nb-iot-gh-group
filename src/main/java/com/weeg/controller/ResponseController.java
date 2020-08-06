@@ -1,5 +1,6 @@
 package com.weeg.controller;
 
+import cn.hutool.http.HttpUtil;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.weeg.bean.*;
@@ -179,7 +180,7 @@ public class ResponseController extends CoreController{
             String CRC = aesutil.crc(MID + C + DID + newresult);
             String tall = "16";
             String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
-            LOG.info("cmd:"+cmd);
+//            LOG.info("cmd:"+cmd);
 
 
             //获取data中platformcode对应的平台信息
@@ -193,7 +194,9 @@ public class ResponseController extends CoreController{
             params.put("operator", value);
             // 向平台下发命令
             String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
+//            String resultobj = HttpUtil.post(postUrl, params.toString());
             String resultobj = post.post(postUrl, params.toString());
+            LOG.info("response3002的POST请求结果:"+resultobj);
 
             if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
                 //命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库

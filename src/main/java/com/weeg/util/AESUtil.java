@@ -1,12 +1,18 @@
 package com.weeg.util;
 
+import com.weeg.controller.SendCmdControllerApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class AESUtil {
-
+	//配置日志
+	private static final Logger LOG = LoggerFactory.getLogger(AESUtil.class);
 
 	// 16进制char集
 	static byte[] iv = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
@@ -31,43 +37,21 @@ public class AESUtil {
 	 *         b @return @return: byte[] @throws
 	 */
 	public byte[] decryptAES(byte[] b,String keyvalue) {
+//		LOG.info("解密参数byte[]:"+ b);
+//		LOG.info("解密参数密钥:"+ keyvalue);
 
-//		public static byte[] decryptAES(byte[] b, String aesKey) {
-		// 判断Key是否为空
-//		if (aesKey == null) {
-//			System.out.print("Key为空null");
-//			return null;
-//		}
-//		// 判断Key是否为16位
-//		if (aesKey.length() != 16) {
-//			System.out.print("Key长度不是16位");
-//			return null;
-//		}
 		try {
-//			byte[] raw = aesKey.getBytes("ASCII");
-			//获取properties文件的相对路径 ------
-//			InputStream is1 = Thread.currentThread().getContextClassLoader().getResourceAsStream("properties/SecretKey.properties");
-//			//创建properties对象
-//			Properties properties1 = new Properties();
-//			//加载路径
-//			properties1.load(is1);
-//			//获取.properties文件key对应的值
-//			String value = properties1.getProperty(key);
-//			System.out.println(value);
-//			//获取值 里面的 秘钥参数KeyValue
-//			String SecretKey = JSONObject.fromObject(value).getString("SecretKey");
-//			String keyvalue = JSONObject.fromObject(SecretKey).getString("keyvalue");
 
-//			String a = keyvalue;
 			DataFomat dataFomat = new DataFomat();
 			byte[] raw = dataFomat.toBytes(keyvalue);
-
 			SecretKeySpec skp = new SecretKeySpec(raw, "AES");
 			Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
 			cipher.init(Cipher.DECRYPT_MODE, skp);
 			byte[] original = cipher.doFinal(b);
 			return original;
+
 		} catch (Exception e) {
+//			LOG.info("解密发生的异常:"+ e);
 			System.out.println("数据解密时发生异常...");
 			e.printStackTrace();
 		}
@@ -80,32 +64,9 @@ public class AESUtil {
 	 * @Title: encryptAES @param b @param aesKey @return @return: byte[] @throws
 	 */
 	public byte[] encryptAES(byte[] decodeContent,String keyvalue) {
-
-//		public static byte[] encryptAES(byte[] decodeContent, String aesKey) {
-//		if (aesKey == null) {
-//			System.out.print("Key为空null");
-//			return null;
-//		}
-//		// 判断Key是否为16位
-//		if (aesKey.length() != 16) {
-//			System.out.print("Key长度不是16位");
-//			return null;
-//		}
+		LOG.info("加密参数byte[]:"+ Arrays.toString(decodeContent));
+		LOG.info("加密参数密钥:"+ keyvalue);
 		try {
-//			//获取properties文件的相对路径 ------
-//			//创建properties对象
-//			Properties properties2 = new Properties();
-//			//加载路径
-//			properties2.load(in2);
-//			//获取.properties文件key对应的值
-//			String value = properties2.getProperty(key);
-//			System.out.println(value);
-//			//获取值 里面的 秘钥参数KeyValue
-//			String SecretKey = JSONObject.fromObject(value).getString("SecretKey");
-//			String keyvalue = JSONObject.fromObject(SecretKey).getString("keyvalue");
-
-//			byte[] raw = aesKey.getBytes("ASCII");
-
 			DataFomat dataFomat = new DataFomat();
 			byte[] raw = dataFomat.toBytes(keyvalue);
 
@@ -122,6 +83,7 @@ public class AESUtil {
 				return encrypted;
 			}
 		} catch (Exception e) {
+			LOG.info("加密发生的异常:"+ e);
 			System.out.println("数据加密时发生异常...");
 			e.printStackTrace();
 		}

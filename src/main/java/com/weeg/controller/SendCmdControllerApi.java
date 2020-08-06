@@ -1,5 +1,6 @@
 package com.weeg.controller;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.weeg.bean.*;
@@ -76,9 +77,15 @@ public class SendCmdControllerApi extends CoreController{
 
         //是否回读
         String reRead = JSONObject.fromObject(jsonOther).getString("reRead");
-        //写命令数据域 data
-        String param = JSONObject.fromObject(jsonOther).getString("data");
 
+        //数据域data ,如果是写命令才有数据库，读可能为空，也可能有数据
+        String param;
+        if("WData".equals(cmdType) || "Record".equals(cmdType)){
+            //写命令数据域 data
+            param = JSONObject.fromObject(jsonOther).getString("data");
+        }else {
+            param = "";
+        }
 
         //根据设备序列号，获取设备对应信息
         DevRegInfo devRegInfo = devRegInfoService.selectByDevSerial(serial);
@@ -144,6 +151,7 @@ public class SendCmdControllerApi extends CoreController{
                 String result = post.post(postUrl, params.toString());
 
                 if (JSONObject.fromObject(result).getString("errno").equals("0")) {
+
                     //将下发成功的命令存入数据库 cmdflag = 1  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
                     DevControlCmd devControlCmd = new DevControlCmd();
                     //生成唯一识别码
@@ -203,8 +211,8 @@ public class SendCmdControllerApi extends CoreController{
                 devControlCmd.setCmdData(data);
                 devControlCmd.setReRead(reRead);
 
-                //判断离线缓存命令是否为 0001 开关阀命令，如果为开关阀命令则只更新为最新命令，不新增。其他命令为新增！
-                if("0001".equals(did)){
+                //判断离线缓存命令是否为 0001 写 开关阀命令，如果为开关阀命令则只更新为最新命令，不新增。其他命令为新增！
+                if("0001".equals(did) && "WData".equals(cmdType)){
                     //先查询0001是否下发过，下发过则更新最新0001命令，没有则插入
                     DevControlCmd devControlCmd1 = devControlCmdService.selectByDevserial(serial);
                     if(devControlCmd1 == null){
@@ -408,7 +416,7 @@ public class SendCmdControllerApi extends CoreController{
             String CRC = aesutil.crc(MID + C + DID + newresult);
             String tall = "16";
             String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
-            LOG.info("cmd:"+cmd);
+//            LOG.info("cmd:"+cmd);
 
 
             //获取data中platformcode对应的平台信息
