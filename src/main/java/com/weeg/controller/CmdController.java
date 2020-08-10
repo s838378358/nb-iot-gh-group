@@ -1,4 +1,5 @@
 package com.weeg.controller;
+
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.weeg.bean.*;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,7 +44,7 @@ public class CmdController {
     DevSecretKeyService devSecretKeyService;
 
 	@RequestMapping(value = "/cmd")
-	public void cmd(@RequestBody String body,HttpServletResponse response,HttpServletRequest request) throws Exception {
+	public void cmd(@RequestBody String body, HttpServletResponse response) throws Exception {
 		Date startTime = new Date();
 		JSONObject returnObj=new JSONObject();
 		int cmdno;
@@ -116,9 +116,10 @@ public class CmdController {
 				params.put("operator", value);
 				
 				// 向平台下发命令
-				String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-				String result = post.post(postUrl, params.toString());
-				
+//				String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
+//				String result = post.post(postUrl, params.toString());
+				String result = SendToOneNetController.postDeviceCmdTou(params.toString());
+
 				if (JSONObject.fromObject(result).getString("errno").equals("0")) {
 					//将下发成功的命令存入数据库 cmdflag = 1  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
 					DevControlCmd devControlCmd = new DevControlCmd();
@@ -637,8 +638,9 @@ public class CmdController {
 			params.put("cmds", cmd);
 			params.put("operator", value);
 			// 向平台下发命令
-			String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
-			String result = post.post(postUrl, params.toString());
+//			String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+			String result = SendToOneNetController.postDeviceCmdTou(params.toString());
+//			String result = post.post(postUrl, params.toString());
 
 			if (JSONObject.fromObject(result).getString("errno").equals("0")) {
 				//命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库

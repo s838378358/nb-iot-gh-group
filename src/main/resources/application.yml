@@ -3,14 +3,23 @@ server:
   servlet:
     context-path: /
 
+#配置线程池参数
+threadpool:
+  core-pool-size: 10
+  max-pool-size: 20
+  queue-capacity: 1000
+  keep-alive-seconds: 600
+
+#sqlserver数据库配置
 spring:
   id: 2101
   datasource:
+    username: sa
     url: jdbc:sqlserver://localhost:1433; DatabaseName=NBDataGH
 #    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
     password: Administrator123
-    #    password: czweeg_2015
-    username: sa
+#    password: czweeg_2015
+
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     type: com.alibaba.druid.pool.DruidDataSource
 
@@ -18,7 +27,7 @@ spring:
     #druid 数据源专有配置
     initialSize: 10
     minIdle: 5
-    maxActive: 100
+    maxActive: 20
     maxWait: 60000
     timeBetweenEvictionRunsMillis: 60000
     minEvictableIdleTimeMillis: 300000
@@ -45,3 +54,4 @@ logging:
     root : info
   file:
     name: E:/logs/nb-iot-gh-group-log.log
+

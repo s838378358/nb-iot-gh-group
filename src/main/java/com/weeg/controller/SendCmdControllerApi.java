@@ -147,8 +147,9 @@ public class SendCmdControllerApi extends CoreController{
                 params.put("operator", value);
 
                 // 向平台下发命令
-                String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
-                String result = post.post(postUrl, params.toString());
+//                String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+//                String result = post.post(postUrl, params.toString());
+                String result = SendToOneNetController.postDeviceCmdTou(params.toString());
 
                 if (JSONObject.fromObject(result).getString("errno").equals("0")) {
 
@@ -233,238 +234,238 @@ public class SendCmdControllerApi extends CoreController{
     }
 
 
-    /**
-     *  下发3002
-     * @param data     数据域
-     * @throws Exception
-     */
-    @RequestMapping(value = "response3002")
-    public Object response3002(@RequestBody String data) throws Exception {
-//        JSONObject returnObj=new JSONObject();
-        DataFomat dataFomat = new DataFomat();
-        AESUtil aesutil = new AESUtil();
-        //设备号
-        String devserial = JSONObject.fromObject(data).getString("serial");
-        //下发命令
-        String did = JSONObject.fromObject(data).getString("did");
-
-        JSONObject EndTestDatas = JSONObject.fromObject(data);
-        JSONObject etDatas = EndTestDatas.getJSONObject("data");
-
-
-        //剩余气量
-        String ResVol = etDatas.getString("ResVol");
-        String ResVoldatabody = "";
-        //有符号整数，转成10进制字符串，扩大1000倍
-        double m1 = Double.parseDouble(ResVol)*1000;
-        long k1 = (long) m1;
-        String n1 = Long.toHexString(k1);
-        String bo = "";
-        if(n1.length() == 8){
-            ResVoldatabody = n1;
-        }else {
-            for(int i=0; i<8; i++){
-                if(i >= n1.length()){
-                    bo += "0";
-                }
-            }
-            ResVoldatabody = bo + n1;
-        }
-
-        //透支状态
-        String OverStatus = etDatas.getString("OverStatus");
-        String OverS = "";
-        if ("非透支".equals(OverStatus)){
-            OverS = "00";
-        }else if ("透支".equals(OverStatus)){
-            OverS = "01";
-        }
-
-        //余量状态
-        String MarStatus = etDatas.getString("MarStatus");
-        String MarS = "";
-        if("余量正常".equals(MarStatus)){
-            MarS = "00";
-        }else if("余量不足".equals(MarStatus)){
-            MarS = "01";
-        }
-
-        //单价
-        String UnitPrice = etDatas.getString("UnitPrice");
-        String UnitPricedatabody = "";
-        //有符号整数，转成10进制字符串，扩大10000倍
-        double m2 = Double.parseDouble(UnitPrice)*10000;
-        long k2 = (long)m2;
-        String n2 = Long.toHexString(k2);
-        String bo2 = "";
-        if(n2.length() == 8){
-            UnitPricedatabody = n2;
-        }else {
-            for(int i=0; i<8; i++){
-                if(i >= n2.length()){
-                    bo2 += "0";
-                }
-            }
-            UnitPricedatabody = bo2 + n2;
-        }
-
-        //剩余金额
-        String balance = etDatas.getString("balance");
-        String balancedatabody = "";
-        //有符号整数，转成10进制字符串，扩大1000倍
-        double m3 = Double.parseDouble(balance)*100;
-        int k3 = (int) m3;
-        String n3= Integer.toHexString(k3);
-        String bo3 = "";
-        if(n3.length() == 8){
-            balancedatabody = n3;
-        }else {
-            for(int i=0; i<8; i++){
-                if(i >= n3.length()){
-                    bo3 += "0";
-                }
-            }
-            balancedatabody = bo3 + n3;
-        }
-
-
-        //根据设备序列号，查询设备状态是否在线
-        IotImeiStatus iotimeistatus = iotimeistatusService.selectBySerial(devserial);
-        String status = iotimeistatus.getStatus();
-
-        //如果设备在线，才能下发3002
-        if("1".equals(status)){
-            //根据设备序列号，获取设备对应信息
-            DevRegInfo devRegInfo = devRegInfoService.selectByDevSerial(devserial);
-            String IMEI = devRegInfo.getImei();
-            //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
-            IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(devRegInfo.getDevserial(),"3001");
-            String resclassid = iprr.getClassid();
-            DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
-            String datas = resdataLog.getData();
-            String mid = JSONObject.fromObject(datas).getString("消息序号");
-            String datastr = JSONObject.fromObject(datas).getString("数据域");
-            String random = JSONObject.fromObject(datastr).getString("通信随机码");
-            //获取密钥版本号
-            String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
-            //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
-            DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname,devserial,IMEI);
-            String keyvalue = devSecretKey.getKeyvalue();
-
-            //data 包含: code错误码2位  date时钟6位  ResVol剩余气量4位   OverS透支状态1位  MarS余量状态1位   UnitPrice单价4位   balance剩余金额4位
-            // 先转成byte[]数组  判断长度是否大于16
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMddHHmmss");
-            String date = simpleDateFormat.format(new Date());
-            String code = "0000";
-
-            String Data = code + date + ResVoldatabody + OverS + MarS + UnitPricedatabody + balancedatabody;
-            //对原始数据域加密加MAC result
-            /**
-             * 加密
-             */
-            MAC mac = new MAC();
-            String body = "";
-            // 16进制数字转成byte[]数组
-//		byte[] dtbytes = dt.getBytes();
-            byte[] bytes = dataFomat.toBytes(Data);
-            // 对数据进行加密 先判断bytes[]数组长度大于16吗
-            int length = bytes.length;
-            int cd;
-            if(length % 16 ==0){
-                cd = length /16;
-            }else{
-                cd = length / 16 + 1;
-            }
-            for (int i = 0; i < cd; i++) {
-                // 创建一个长度是16的数组,用于存放每一段数组
-                byte[] newTxet = new byte[16];
-                for (int j = 0; j < 16; j++) {
-                    if((i * 16 + j) <= length-1){
-                        newTxet[j] = bytes[i * 16 + j];
-                    }else{
-                        newTxet[j] = 0;
-                    }
-                }
-                String originalString = dataFomat.bytes2HexString(aesutil.encryptAES(newTxet,keyvalue));
-                body = body + originalString;
-            }
-            // 去掉body中的空格
-            body = body.replaceAll(" ", "");
-            String encrystr = random + body;
-            // 16进制数字转成byte[]数组
-            byte[] b2 = dataFomat.toBytes(encrystr);
-            // Mac认证
-            String mactype = mac.HMACSHA256(b2,random,keyvalue);
-            // 拼接成数据域 先将加密数据转成字符串， 再拼上MAC字符串
-//			String jmysj = dataFomat.bytesToHexFun1(b2);
-            String newresult = body + mactype;
-
-//			String result = encryptAESAndMAC(Data, random);
-
-            String head = "68";
-            String T = "00";
-            String V = "01";
-            String L = String.format("%04x", dataFomat.toBytes(newresult).length + 12).toUpperCase();
-
-            //取设备上报上来的消息序号
-            String MID = mid;
-
-            // 控制域
-            String C = "82";
-            String DID = "3002";
-
-            String CRC = aesutil.crc(MID + C + DID + newresult);
-            String tall = "16";
-            String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
-//            LOG.info("cmd:"+cmd);
-
-
-            //获取data中platformcode对应的平台信息
-            String value = props.getStr(devRegInfo.getPlatformcode());
-
-            //拼接下发平台命令需要的信息
-            JSONObject params = new JSONObject();
-            params.put("NBId", devRegInfo.getIotserial());
-            params.put("imei", devRegInfo.getImei());
-            params.put("cmds", cmd);
-            params.put("operator", value);
-            // 向平台下发命令
-            String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
-            String resultobj = post.post(postUrl, params.toString());
-
-            if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
-                //命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
-                DevControlCmd devControlCmd=new DevControlCmd();
-                //生成唯一识别码
-                String classid=UUID.randomUUID().toString();
-                devControlCmd.setClassid(classid);
-                devControlCmd.setDevserial(devserial);
-                devControlCmd.setIotserial(devRegInfo.getIotserial());
-                devControlCmd.setDevtype(devRegInfo.getDevtype());
-                devControlCmd.setOpttype(devRegInfo.getPlatformcode());
-                devControlCmd.setDid(DID);
-                devControlCmd.setCtrlvalue(cmd);
-                devControlCmd.setCtrltype(random);
-                devControlCmd.setCtrltime(new Date());
-                //命令下发 cmdflag = 1
-                devControlCmd.setCmdFlag("1");
-                //未下发命令条数 默认0
-                int cmdno = 0;
-                devControlCmd.setCmdNo(cmdno);
-                devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
-                devControlCmdService.insert(devControlCmd);
-
-                // 命令下发成功
-                return new Ok("2101","命令下发成功");
-            } else {
-                //JSONObject.fromObject(result).getString("error") 平台返回的错误
-                return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(resultobj).getString("error"));
-            }
-        }else{
-            //拼接下发命令 将未下发的命令存入数据库  设备不在线，命令已存入数据库
-            return fail(ErrorEnmus.ERROR_10002.getCode(), ErrorEnmus.ERROR_10002.getMessage());
-        }
-    }
+//    /**
+//     *  下发3002
+//     * @param data     数据域
+//     * @throws Exception
+//     */
+//    @RequestMapping(value = "response3002")
+//    public Object response3002(@RequestBody String data) throws Exception {
+////        JSONObject returnObj=new JSONObject();
+//        DataFomat dataFomat = new DataFomat();
+//        AESUtil aesutil = new AESUtil();
+//        //设备号
+//        String devserial = JSONObject.fromObject(data).getString("serial");
+//        //下发命令
+//        String did = JSONObject.fromObject(data).getString("did");
+//
+//        JSONObject EndTestDatas = JSONObject.fromObject(data);
+//        JSONObject etDatas = EndTestDatas.getJSONObject("data");
+//
+//
+//        //剩余气量
+//        String ResVol = etDatas.getString("ResVol");
+//        String ResVoldatabody = "";
+//        //有符号整数，转成10进制字符串，扩大1000倍
+//        double m1 = Double.parseDouble(ResVol)*1000;
+//        long k1 = (long) m1;
+//        String n1 = Long.toHexString(k1);
+//        String bo = "";
+//        if(n1.length() == 8){
+//            ResVoldatabody = n1;
+//        }else {
+//            for(int i=0; i<8; i++){
+//                if(i >= n1.length()){
+//                    bo += "0";
+//                }
+//            }
+//            ResVoldatabody = bo + n1;
+//        }
+//
+//        //透支状态
+//        String OverStatus = etDatas.getString("OverStatus");
+//        String OverS = "";
+//        if ("非透支".equals(OverStatus)){
+//            OverS = "00";
+//        }else if ("透支".equals(OverStatus)){
+//            OverS = "01";
+//        }
+//
+//        //余量状态
+//        String MarStatus = etDatas.getString("MarStatus");
+//        String MarS = "";
+//        if("余量正常".equals(MarStatus)){
+//            MarS = "00";
+//        }else if("余量不足".equals(MarStatus)){
+//            MarS = "01";
+//        }
+//
+//        //单价
+//        String UnitPrice = etDatas.getString("UnitPrice");
+//        String UnitPricedatabody = "";
+//        //有符号整数，转成10进制字符串，扩大10000倍
+//        double m2 = Double.parseDouble(UnitPrice)*10000;
+//        long k2 = (long)m2;
+//        String n2 = Long.toHexString(k2);
+//        String bo2 = "";
+//        if(n2.length() == 8){
+//            UnitPricedatabody = n2;
+//        }else {
+//            for(int i=0; i<8; i++){
+//                if(i >= n2.length()){
+//                    bo2 += "0";
+//                }
+//            }
+//            UnitPricedatabody = bo2 + n2;
+//        }
+//
+//        //剩余金额
+//        String balance = etDatas.getString("balance");
+//        String balancedatabody = "";
+//        //有符号整数，转成10进制字符串，扩大1000倍
+//        double m3 = Double.parseDouble(balance)*100;
+//        int k3 = (int) m3;
+//        String n3= Integer.toHexString(k3);
+//        String bo3 = "";
+//        if(n3.length() == 8){
+//            balancedatabody = n3;
+//        }else {
+//            for(int i=0; i<8; i++){
+//                if(i >= n3.length()){
+//                    bo3 += "0";
+//                }
+//            }
+//            balancedatabody = bo3 + n3;
+//        }
+//
+//
+//        //根据设备序列号，查询设备状态是否在线
+//        IotImeiStatus iotimeistatus = iotimeistatusService.selectBySerial(devserial);
+//        String status = iotimeistatus.getStatus();
+//
+//        //如果设备在线，才能下发3002
+//        if("1".equals(status)){
+//            //根据设备序列号，获取设备对应信息
+//            DevRegInfo devRegInfo = devRegInfoService.selectByDevSerial(devserial);
+//            String IMEI = devRegInfo.getImei();
+//            //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
+//            IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(devRegInfo.getDevserial(),"3001");
+//            String resclassid = iprr.getClassid();
+//            DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
+//            String datas = resdataLog.getData();
+//            String mid = JSONObject.fromObject(datas).getString("消息序号");
+//            String datastr = JSONObject.fromObject(datas).getString("数据域");
+//            String random = JSONObject.fromObject(datastr).getString("通信随机码");
+//            //获取密钥版本号
+//            String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
+//            //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
+//            DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname,devserial,IMEI);
+//            String keyvalue = devSecretKey.getKeyvalue();
+//
+//            //data 包含: code错误码2位  date时钟6位  ResVol剩余气量4位   OverS透支状态1位  MarS余量状态1位   UnitPrice单价4位   balance剩余金额4位
+//            // 先转成byte[]数组  判断长度是否大于16
+//            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMddHHmmss");
+//            String date = simpleDateFormat.format(new Date());
+//            String code = "0000";
+//
+//            String Data = code + date + ResVoldatabody + OverS + MarS + UnitPricedatabody + balancedatabody;
+//            //对原始数据域加密加MAC result
+//            /**
+//             * 加密
+//             */
+//            MAC mac = new MAC();
+//            String body = "";
+//            // 16进制数字转成byte[]数组
+////		byte[] dtbytes = dt.getBytes();
+//            byte[] bytes = dataFomat.toBytes(Data);
+//            // 对数据进行加密 先判断bytes[]数组长度大于16吗
+//            int length = bytes.length;
+//            int cd;
+//            if(length % 16 ==0){
+//                cd = length /16;
+//            }else{
+//                cd = length / 16 + 1;
+//            }
+//            for (int i = 0; i < cd; i++) {
+//                // 创建一个长度是16的数组,用于存放每一段数组
+//                byte[] newTxet = new byte[16];
+//                for (int j = 0; j < 16; j++) {
+//                    if((i * 16 + j) <= length-1){
+//                        newTxet[j] = bytes[i * 16 + j];
+//                    }else{
+//                        newTxet[j] = 0;
+//                    }
+//                }
+//                String originalString = dataFomat.bytes2HexString(aesutil.encryptAES(newTxet,keyvalue));
+//                body = body + originalString;
+//            }
+//            // 去掉body中的空格
+//            body = body.replaceAll(" ", "");
+//            String encrystr = random + body;
+//            // 16进制数字转成byte[]数组
+//            byte[] b2 = dataFomat.toBytes(encrystr);
+//            // Mac认证
+//            String mactype = mac.HMACSHA256(b2,random,keyvalue);
+//            // 拼接成数据域 先将加密数据转成字符串， 再拼上MAC字符串
+////			String jmysj = dataFomat.bytesToHexFun1(b2);
+//            String newresult = body + mactype;
+//
+////			String result = encryptAESAndMAC(Data, random);
+//
+//            String head = "68";
+//            String T = "00";
+//            String V = "01";
+//            String L = String.format("%04x", dataFomat.toBytes(newresult).length + 12).toUpperCase();
+//
+//            //取设备上报上来的消息序号
+//            String MID = mid;
+//
+//            // 控制域
+//            String C = "82";
+//            String DID = "3002";
+//
+//            String CRC = aesutil.crc(MID + C + DID + newresult);
+//            String tall = "16";
+//            String cmd = head + T + V + L + MID + C + DID + newresult + CRC + tall;
+////            LOG.info("cmd:"+cmd);
+//
+//
+//            //获取data中platformcode对应的平台信息
+//            String value = props.getStr(devRegInfo.getPlatformcode());
+//
+//            //拼接下发平台命令需要的信息
+//            JSONObject params = new JSONObject();
+//            params.put("NBId", devRegInfo.getIotserial());
+//            params.put("imei", devRegInfo.getImei());
+//            params.put("cmds", cmd);
+//            params.put("operator", value);
+//            // 向平台下发命令
+//            String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
+//            String resultobj = post.post(postUrl, params.toString());
+//
+//            if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
+//                //命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
+//                DevControlCmd devControlCmd=new DevControlCmd();
+//                //生成唯一识别码
+//                String classid=UUID.randomUUID().toString();
+//                devControlCmd.setClassid(classid);
+//                devControlCmd.setDevserial(devserial);
+//                devControlCmd.setIotserial(devRegInfo.getIotserial());
+//                devControlCmd.setDevtype(devRegInfo.getDevtype());
+//                devControlCmd.setOpttype(devRegInfo.getPlatformcode());
+//                devControlCmd.setDid(DID);
+//                devControlCmd.setCtrlvalue(cmd);
+//                devControlCmd.setCtrltype(random);
+//                devControlCmd.setCtrltime(new Date());
+//                //命令下发 cmdflag = 1
+//                devControlCmd.setCmdFlag("1");
+//                //未下发命令条数 默认0
+//                int cmdno = 0;
+//                devControlCmd.setCmdNo(cmdno);
+//                devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
+//                devControlCmdService.insert(devControlCmd);
+//
+//                // 命令下发成功
+//                return new Ok("2101","命令下发成功");
+//            } else {
+//                //JSONObject.fromObject(result).getString("error") 平台返回的错误
+//                return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(resultobj).getString("error"));
+//            }
+//        }else{
+//            //拼接下发命令 将未下发的命令存入数据库  设备不在线，命令已存入数据库
+//            return fail(ErrorEnmus.ERROR_10002.getCode(), ErrorEnmus.ERROR_10002.getMessage());
+//        }
+//    }
 
     /**
      *

@@ -1,30 +1,30 @@
 package com.weeg.controller;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.weeg.bean.*;
+import com.weeg.configurer.ThreadConfig;
 import com.weeg.service.*;
-import com.weeg.util.*;
+import com.weeg.util.AESUtil;
+import com.weeg.util.DataFomat;
+import com.weeg.util.MAC;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @Description: 提供给平台的回调接口
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeegCallbackController {
     //配置日志
     private static final Logger LOG = LoggerFactory.getLogger(WeegCallbackController.class);
-    static Post post = new Post();
+//    static Post post = new Post();
     //读取配置文件
     Props dataprops = PropsUtil.get("properties/data.properties");
 
@@ -57,28 +57,30 @@ public class WeegCallbackController {
     IotImeistatusHisService iotimeistatushisService;
     @Autowired
     DevSecretKeyService devSecretKeyService;
+    @Resource
+    private ThreadConfig threadConfig;
 
 
-    /**
-     * NB订阅消息所用的回调地址，供平台验证推送地址
-     *
-     * @throws IOException
-     */
-    @RequestMapping(value = "/callbackIn", method = RequestMethod.GET)
-    public static void token(String msg, HttpServletResponse response) throws IOException {
-        String data = msg;
-        // 默认验证成功
-        // 设置响应头部,设置主体的编码格式是UTF-8
-        response.setHeader("content-type", "text/html;charset=UTF-8");
-        // 设置传输的编码格式
-        response.setCharacterEncoding("UTF-8");
-        Writer writer = response.getWriter();
-        // 将 字符串内容写入缓存
-        writer.write(data);
-        // 将缓存输出
-        writer.flush();
-        writer.close();
-    }
+//    /**
+//     * NB订阅消息所用的回调地址，供平台验证推送地址
+//     *
+//     * @throws IOException
+//     */
+//    @RequestMapping(value = "/callbackIn", method = RequestMethod.GET)
+//    public static void token(String msg, HttpServletResponse response) throws IOException {
+//        String data = msg;
+//        // 默认验证成功
+//        // 设置响应头部,设置主体的编码格式是UTF-8
+//        response.setHeader("content-type", "text/html;charset=UTF-8");
+//        // 设置传输的编码格式
+//        response.setCharacterEncoding("UTF-8");
+//        Writer writer = response.getWriter();
+//        // 将 字符串内容写入缓存
+//        writer.write(data);
+//        // 将缓存输出
+//        writer.flush();
+//        writer.close();
+//    }
 
     /*
      * @Author SJ
@@ -88,8 +90,8 @@ public class WeegCallbackController {
      * @Param [body, response]
      * @return void
      **/
-    @RequestMapping(value = "/callbackIn", method = RequestMethod.POST)
-    public void callbackIn(@RequestBody String body, HttpServletResponse response) throws Exception {
+    @PostMapping(value = "/callbackIn")
+    public void callbackIn (@RequestBody String body, HttpServletResponse response) throws Exception {
         // 接收到推送数据，首先向平台回复200 OK 设置响应头部,设置主体的编码格式是UTF-8
         response.setHeader("content-type", "text/html;charset=UTF-8");
         // 设置传输的编码格式
@@ -102,11 +104,11 @@ public class WeegCallbackController {
         writer.close();
 
         //开启多线程
-        ThreadUtil.execAsync(() -> {
-            try {
-
-//                StandardizationDataPush dataPush = new StandardizationDataPush();
-//                Map<String,Object> ObjMap = dataPush.dataMap();
+        CountDownLatch countDownLatch = new CountDownLatch(100);
+        threadConfig.asyncServiceExecutor().execute(() -> {
+            try{
+                //        StandardizationDataPush dataPush = new StandardizationDataPush();
+                //        Map<String, Object> ObjMap = dataPush.dataMap();
 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                 Date date = new Date();
@@ -176,53 +178,57 @@ public class WeegCallbackController {
                         dataLog.setUpdatetime(date);
                         devDataLogService.insert(dataLog);
 
-                        String keyvalue;
-                        //如果是3001上报 注册请求 ，提取参数
-                        if (did.equals("3001")) {
 
+                        //如果是3001上报 注册请求 ，提取参数
+//                        if (did.equals("3001")) {
+//
+//
+//
+//                        } else {
+//                            //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
+//                            IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(regInfo.getDevserial(), "3001");
+//                            String resclassid = iprr.getClassid();
+//                            DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
+//                            String datas = resdataLog.getData();
+//                            String datastr = JSONObject.fromObject(datas).getString("数据域");
+//                            //                    //获取密钥版本号
+//                            String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
+//                            //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
+//                            DevSecretKey devSecretKey = null;
+//                            try {
+//                                devSecretKey = devSecretKeyService.selectSecretKeyvalue(keyname, DevserialID, imei);
+//                            } catch (Exception e) {
+//                                LOG.info("查询密钥异常：" + "密钥>>>" + keyname + "设备号>>>" + DevserialID + "imei>>>" + imei);
+//                                e.printStackTrace();
+//                            }
+//                            String keyvalue = devSecretKey.getKeyvalue();
+//                        }
+
+                        //生成对3001的回复命令
+                        if (did.equals("3001")) {
+                            LOG.info("Start>>>>3001上报:" + content);
+                            LOG.info("设备号:" + DevserialID);
                             String keyname = JSONObject.fromObject(j).getString("密钥版本号");
 //                            LOG.info("当前密钥版本号"+keyname);
 
                             //更新 当前版本密钥为启用 必定执行
-                            int upnewkey = devSecretKeyService.updatenewusekeynameopen(imei, DevserialID, keyname);
+                            devSecretKeyService.updatenewusekeynameopen(imei, DevserialID, keyname);
 //                            LOG.info("当前版本密钥是否启用"+upnewkey);
 
-                            //更新 根据密钥版本，更新另外一个密钥为不启用
-                            int upoldkey = devSecretKeyService.updateoldusekeynameclose(imei, DevserialID, keyname);
+//                            //更新 根据密钥版本，更新另外一个密钥为不启用
+//                            devSecretKeyService.updateoldusekeynameclose(imei, DevserialID, keyname);
 //                            LOG.info("非当前版本密钥是否停用"+upoldkey);
 
                             //根据密钥版本号以及IMEI号, 数据库执行删除老版本密钥(默认版本除外)
-                            int deleteSecretKeyByImei = devSecretKeyService.delOtherSecretKey(imei, keyname);
+                            devSecretKeyService.delOtherSecretKey(imei, keyname);
 //                            LOG.info("删除老版本密钥(默认版本除外)"+deleteSecretKeyByImei);
 
                             //如果设备上报上来的是3001命令，先去获取3001里面设备的密钥版本号，查询对应的密钥参数，并启用新版本密钥，停用老版本密钥
                             DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, DevserialID, imei);
-                            keyvalue = devSecretKey.getKeyvalue();
+                            String keyvalue = devSecretKey.getKeyvalue();
 //                            LOG.info("密钥："+keyvalue);
 
-                        } else {
-                            //先查出最新的3001请求的classID，再根据classID查出3001请求的数据域
-                            IotPushRecvReponse iprr = iotPushRecvReponseService.selectClassid(regInfo.getDevserial(), "3001");
-                            String resclassid = iprr.getClassid();
-                            DevDataLog resdataLog = devDataLogService.selectByChildclassId(resclassid);
-                            String datas = resdataLog.getData();
-                            String datastr = JSONObject.fromObject(datas).getString("数据域");
-                            //                    //获取密钥版本号
-                            String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
-                            //根据密钥版本号、设备编号、IMEI号获取对应的密钥keyvalue
-                            DevSecretKey devSecretKey = null;
-                            try {
-                                devSecretKey = devSecretKeyService.selectSecretKeyvalue(keyname, DevserialID, imei);
-                            } catch (Exception e) {
-                                LOG.info("查询密钥异常："+"密钥>>>"+keyname+"设备号>>>"+DevserialID+"imei>>>"+imei);
-                                e.printStackTrace();
-                            }
-                            keyvalue = devSecretKey.getKeyvalue();
-                        }
 
-                        if (did.equals("3001")) {
-
-                            //生成对3001的回复命令
                             String tongxunsuijima = JSONObject.fromObject(j).getString("通信随机码");
                             String repData = response3001("0000", tongxunsuijima, mid, keyvalue);
 
@@ -233,12 +239,12 @@ public class WeegCallbackController {
                             params.put("cmds", repData);
                             params.put("operator", value);
 
-                            // 将回应数据向平台下发
-                            String postUrl = dataprops.getStr(regInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+//                            String postUrl = dataprops.getStr(regInfo.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
 
-                            String result = post.post(postUrl, params.toString());
+                            String result = SendToOneNetController.postDeviceCmdTou(params.toString());
 
-                             LOG.info("3001回复请求"+params.toString());
+                            LOG.info("回复3001参数:" + repData);
+                            LOG.info("回复3001结果:" + result);
                             //对返回数据进行判断
 
                             if (JSONObject.fromObject(result).getString("errno").equals("0")) {
@@ -347,6 +353,9 @@ public class WeegCallbackController {
                                     String datas = resdataLog.getData();
                                     String datastr = JSONObject.fromObject(datas).getString("数据域");
                                     String random = JSONObject.fromObject(datastr).getString("通信随机码");
+                                    String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
+                                    DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, DevserialID, imei);
+                                    String keyvalue = devSecretKey.getKeyvalue();
                                     CmdController cmdctroller = new CmdController();
                                     String cmdType = devcontrolcmd.getCmdType();
                                     String dida = devcontrolcmd.getDid();
@@ -374,9 +383,10 @@ public class WeegCallbackController {
                                     params.put("cmds", cmd);
                                     params.put("operator", value);
                                     // 向平台下发命令
-                                    String postUrl = dataprops.getStr(regInfo2.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
-                                    String result = post.post(postUrl, params.toString());
+//                                    String postUrl = dataprops.getStr(regInfo2.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+//                                    String result = post.post(postUrl, params.toString());
 
+                                    String result = SendToOneNetController.postDeviceCmdTou(params.toString());
                                     if (JSONObject.fromObject(result).getString("errno").equals("0")) {
                                         // 命令下发成功
                                         returnObj.put("result", true);
@@ -395,12 +405,12 @@ public class WeegCallbackController {
                                         returnObj.put("msg", JSONObject.fromObject(result).getString("error"));
                                     }
                                 }
-                            }else {
+                            } else {
                                 //没有缓存命令，线程等待2秒，下发3002
 //                                ThreadUtil.sleep(8000);
                                 ResponseController responseController = new ResponseController();
-                                responseController.response3002(devSecretKeyService,devDataLogService,iotPushRecvReponseService,
-                                        devControlCmdService,devRegInfoService,iotimeistatusService,devserial);
+                                responseController.response3002(devSecretKeyService, devDataLogService, iotPushRecvReponseService,
+                                        devControlCmdService, devRegInfoService, iotimeistatusService, devserial);
                             }
                         } else {
                             DevRegInfo regInfo2 = devRegInfoService.selectByImei(imei);
@@ -424,6 +434,9 @@ public class WeegCallbackController {
                                     String datas = resdataLog.getData();
                                     String datastr = JSONObject.fromObject(datas).getString("数据域");
                                     String random = JSONObject.fromObject(datastr).getString("通信随机码");
+                                    String keyname = JSONObject.fromObject(datastr).getString("密钥版本号");
+                                    DevSecretKey devSecretKey = devSecretKeyService.selectkeyvalue(keyname, DevserialID, imei);
+                                    String keyvalue = devSecretKey.getKeyvalue();
                                     CmdController cmdctroller = new CmdController();
                                     String cmdType = devcontrolcmd.getCmdType();
                                     String dida = devcontrolcmd.getDid();
@@ -451,8 +464,9 @@ public class WeegCallbackController {
                                     params.put("cmds", cmd);
                                     params.put("operator", value);
                                     // 向平台下发命令
-                                    String postUrl = dataprops.getStr(regInfo2.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
-                                    String result = post.post(postUrl, params.toString());
+//                                    String postUrl = dataprops.getStr(regInfo2.getPlatformcode().substring(0, 1)) + "postDeviceCmdTou";
+//                                    String result = post.post(postUrl, params.toString());
+                                    String result = SendToOneNetController.postDeviceCmdTou(params.toString());
 
                                     if (JSONObject.fromObject(result).getString("errno").equals("0")) {
                                         // 命令下发成功
@@ -473,13 +487,13 @@ public class WeegCallbackController {
                                         returnObj.put("msg", JSONObject.fromObject(result).getString("error"));
                                     }
                                 }
-                            }else {
+                            } else {
                                 //没有缓存命令，线程等待2秒，下发3002
 //                                ThreadUtil.sleep(8000);
                                 ThreadUtil.waitForDie();
                                 ResponseController responseController = new ResponseController();
-                                responseController.response3002(devSecretKeyService,devDataLogService,iotPushRecvReponseService,
-                                        devControlCmdService,devRegInfoService,iotimeistatusService,devserial);
+                                responseController.response3002(devSecretKeyService, devDataLogService, iotPushRecvReponseService,
+                                        devControlCmdService, devRegInfoService, iotimeistatusService, devserial);
                             }
                         }
                     } else if (obj.has("status")) {
@@ -516,22 +530,28 @@ public class WeegCallbackController {
                             iotimeistatushis.setNonce(nonce);
                             iotimeistatushis.setStatustime(new Date());
                             iotimeistatushisService.insert(iotimeistatushis);
-                        } else {
-//                            System.out.println("非法设备状态数据！");
                         }
-
-                    } else {
-//                System.out.println("非法数据！");
                     }
-
-                } else {
-//            System.out.println("非法数据！");
                 }
-            } catch (Exception e) {
+            }catch (Exception e){
                 e.printStackTrace();
+            }finally {
+                Long l = countDownLatch.getCount();
+//            logger.info("current threads --> " + l);
+                countDownLatch.countDown();  // 这个不管是否异常都需要数量减,否则会被堵塞无法结束
             }
-
         });
+
+
+//        ThreadUtil.execAsync(() -> {
+//            try {
+
+
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//        });
 
     }
 
@@ -1862,7 +1882,7 @@ public class WeegCallbackController {
     public String response3001(String data, String suijima, String mid, String keyvalue) throws Exception {
         Date date = new Date();
         DataFomat dataFomat = new DataFomat();
-        AESUtil aesutil = new AESUtil();
+//        AESUtil aesutil = new AESUtil();
         //data 数据域    对于3001的回复数据，数据域是2字节错误码加上6字节时钟 ，错误码暂时默认0000无错误
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMddHHmmss");
         //错误码 加 日期  数据对象内容

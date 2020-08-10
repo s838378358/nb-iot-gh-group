@@ -64,8 +64,8 @@ public class AESUtil {
 	 * @Title: encryptAES @param b @param aesKey @return @return: byte[] @throws
 	 */
 	public byte[] encryptAES(byte[] decodeContent,String keyvalue) {
-		LOG.info("加密参数byte[]:"+ Arrays.toString(decodeContent));
-		LOG.info("加密参数密钥:"+ keyvalue);
+//		LOG.info("加密参数byte[]:"+ Arrays.toString(decodeContent));
+//		LOG.info("加密参数密钥:"+ keyvalue);
 		try {
 			DataFomat dataFomat = new DataFomat();
 			byte[] raw = dataFomat.toBytes(keyvalue);
@@ -84,7 +84,7 @@ public class AESUtil {
 			}
 		} catch (Exception e) {
 			LOG.info("加密发生的异常:"+ e);
-			System.out.println("数据加密时发生异常...");
+//			System.out.println("数据加密时发生异常...");
 			e.printStackTrace();
 		}
 		return null;

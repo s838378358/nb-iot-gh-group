@@ -1,5 +1,8 @@
 package com.weeg.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -7,10 +10,12 @@ import java.net.URLConnection;
 
 public class Post {
 	static String host = "api.js.cmcconenet.com";
+	//配置日志
+	private static final Logger LOG = LoggerFactory.getLogger(Post.class);
 //	// 江苏key
 //	static String apiKey = "yVMWn3tBUaWds2SLrvD6Li2C=KU=";
 
-	// 发出post请求
+	// Http发出post请求
 	public String post(String strURL, String params) {
 		try {
 			URL url = new URL(strURL);// 创建连接
@@ -44,10 +49,61 @@ public class Post {
 //			System.out.println("response:"+response);
 			return response;
 		} catch (IOException e) {
-			post(strURL,params);
+			LOG.info("post请求异常，重新请求");
+//			System.out.println("post请求异常，重新请求");
+//			Post.post(strURL,params);
 			e.printStackTrace();
 			return "fail";
 		}
+	}
+
+	/**
+	 * 向移动云平台推送的请求
+	 * @param strURL
+	 * @param params
+	 * @param host
+	 * @param apiKey
+	 * @return
+	 */
+	public String post(String strURL, String params,String host,String apiKey) {
+		try {
+			URL url = new URL(strURL);// 创建连接
+			HttpURLConnection connection = (HttpURLConnection) url
+					.openConnection();// 打开链接
+			connection.setDoOutput(true);// 隐式设置请求方式为post
+			connection.setDoInput(true);// 从httpUrlConnection读入，默认的情况下是true
+			connection.setUseCaches(false);// post请求不能使用缓存
+			connection.setInstanceFollowRedirects(true);// 是否连接遵循重定向
+			connection.setRequestProperty("Content-Type", "application/json"); // 设置发送数据的格式
+			connection.setRequestProperty("Host", host);
+			connection.setRequestProperty("api-key", apiKey);
+			//设置超时毫秒数
+			connection.setConnectTimeout(30000);
+			connection.setReadTimeout(30000);
+			connection.connect();// 实现连接
+			OutputStreamWriter out = new OutputStreamWriter(
+					connection.getOutputStream(), "UTF-8");// 字符输出流，确认流的输出文件按照UTF—8的格式
+			out.append(params);// 将params中的字符追加
+			out.flush();// 在关闭流的时候，将内存中的数据一次性输出
+			out.close();// 关闭流
+
+			// 读取响应
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String lines;
+			StringBuffer sb = new StringBuffer("");
+			while ((lines = reader.readLine()) != null) {
+				lines = new String(lines.getBytes(), "utf-8");
+				sb.append(lines);
+			}
+			reader.close();
+			// 断开连接
+			connection.disconnect();
+			String response = sb.toString();
+			return response;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "fail";
 	}
 
 	public static String get(String url) {

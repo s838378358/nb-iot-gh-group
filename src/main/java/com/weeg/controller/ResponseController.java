@@ -193,12 +193,10 @@ public class ResponseController extends CoreController{
             params.put("cmds", cmd);
             params.put("operator", value);
             // 向平台下发命令
-            String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
+//            String postUrl = props.getStr(devRegInfo.getPlatformcode().substring(0, 1))+ "postDeviceCmdTou";
 //            String resultobj = HttpUtil.post(postUrl, params.toString());
-            String resultobj = post.post(postUrl, params.toString());
-            LOG.info("response3002的POST请求结果:"+resultobj);
-
-            if (JSONObject.fromObject(resultobj).getString("errno").equals("0")) {
+            String result = SendToOneNetController.postDeviceCmdTou(params.toString());
+            if (JSONObject.fromObject(result).getString("errno").equals("0")) {
                 //命令下发成功  将数据原文添加进数据库  devControlCmd.setcmdFlag(1)  1表示命令下发， 存入数据库
                 DevControlCmd devControlCmd=new DevControlCmd();
                 //生成唯一识别码
@@ -220,13 +218,13 @@ public class ResponseController extends CoreController{
                 devControlCmd.setCtrltime1(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
                 devControlCmdService.insert(devControlCmd);
 
-                LOG.info("3002命令下发成功:"+resultobj);
+                LOG.info("End>>>3002命令下发成功:"+result);
                 // 命令下发成功
                 return new Ok("2101","命令下发成功");
             } else {
                 //JSONObject.fromObject(result).getString("error") 平台返回的错误
-                LOG.info("3002命令下发失败:"+JSONObject.fromObject(resultobj).getString("error"));
-                return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(resultobj).getString("error"));
+                LOG.info("3002命令下发失败:"+JSONObject.fromObject(result).getString("error"));
+                return fail(ErrorEnmus.ERROR_10003.getCode(), JSONObject.fromObject(result).getString("error"));
             }
         }else{
             //拼接下发命令 将未下发的命令存入数据库  设备不在线，命令已存入数据库
