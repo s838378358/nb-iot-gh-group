@@ -1,4 +1,4 @@
-package com.weeg.handler;
+package com.weeg.callbackHandler;
 
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.InitializingBean;
