@@ -73,15 +73,15 @@ public class AESUtil {
 			SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
 			Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
 			cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-			
+
+			byte[] encrypted;
 			if(decodeContent.length==16) {
-				byte[] encrypted = cipher.doFinal(decodeContent);
-				return encrypted;
+				encrypted = cipher.doFinal(decodeContent);
 			}else {
 				//不足16位的，将数据补齐
-				byte[] encrypted = cipher.doFinal(pkcs7Padding(decodeContent));
-				return encrypted;
+				encrypted = cipher.doFinal(pkcs7Padding(decodeContent));
 			}
+			return encrypted;
 		} catch (Exception e) {
 			LOG.info("加密发生的异常:"+ e);
 //			System.out.println("数据加密时发生异常...");

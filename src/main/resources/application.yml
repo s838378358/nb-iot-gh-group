@@ -15,10 +15,10 @@ spring:
   id: 2101
   datasource:
     username: sa
-    url: jdbc:sqlserver://localhost:1433; DatabaseName=NBDataGH
-#    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
-    password: Administrator123
-#    password: czweeg_2015
+#    url: jdbc:sqlserver://localhost:1433; DatabaseName=NBDataGH
+    url: jdbc:sqlserver://192.168.1.76:1433; DatabaseName=NBDataGH
+#    password: Administrator123
+    password: czweeg_2015
 
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     type: com.alibaba.druid.pool.DruidDataSource
