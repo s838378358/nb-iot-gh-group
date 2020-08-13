@@ -733,6 +733,50 @@ public class WeegCallbackController {
             resultObject = strategy.upload0017Handler(object,mid,binaryData);
         }else if ("1000".equals(mid)){
             resultObject = strategy.upload1000Handler(object,mid,binaryData,hexstr);
+        }else if ("1001".equals(mid)){
+            resultObject = strategy.upload1001Handler(object,mid,binaryData,hexstr);
+        }else if ("1004".equals(mid)){
+            resultObject = strategy.upload1004Handler(object,mid,b,binaryData,hexstr,keyvalue);
+        }else if ("2001".equals(mid)){
+            resultObject = strategy.upload2001Handler(object,mid,binaryData);
+        }else if ("2002".equals(mid)){
+            resultObject = strategy.upload2002Handler(object,mid,binaryData);
+        }else if ("2003".equals(mid)){
+            resultObject = strategy.upload2003Handler(object,mid,binaryData);
+        }else if ("2004".equals(mid)){
+            resultObject = strategy.upload2004Handler(object,mid,binaryData);
+        }else if ("2005".equals(mid)){
+            resultObject = strategy.upload2005Handler(object,mid,binaryData);
+        }else if ("2006".equals(mid)){
+            resultObject = strategy.upload2006Handler(object,mid,binaryData,hexstr);
+        }else if ("2007".equals(mid)){
+            resultObject = strategy.upload2007Handler(object,mid,binaryData,hexstr);
+        }else if ("2009".equals(mid)){
+            resultObject = strategy.upload2009Handler(object,mid,binaryData,imeikey,devRegInfoService,devDataLogService,devSecretKeyService);
+        }else if ("200a".equals(mid)){
+            resultObject = strategy.upload200aHandler(object,mid,binaryData);
+        }else if ("200e".equals(mid)){
+            resultObject = strategy.upload200eHandler(object,mid,binaryData,hexstr);
+        }else if ("200f".equals(mid)){
+            resultObject = strategy.upload200fHandler(object,mid,binaryData,hexstr);
+        }else if ("2010".equals(mid)){
+            resultObject = strategy.upload2010Handler(object,mid,binaryData,hexstr);
+        }else if ("2011".equals(mid)){
+            resultObject = strategy.upload2011Handler(object,mid,binaryData,hexstr);
+        }else if ("2012".equals(mid)){
+            resultObject = strategy.upload2012Handler(object,mid,binaryData,hexstr);
+        }else if ("2020".equals(mid)){
+            resultObject = strategy.upload2020Handler(object,mid,binaryData,hexstr);
+        }else if ("0007".equals(mid)){
+            resultObject = strategy.upload0007Handler(object,mid,binaryData);
+        }else if ("0008".equals(mid)){
+            resultObject = strategy.upload0008Handler(object,mid,binaryData,hexstr,content);
+        }else if ("0009".equals(mid)){
+            resultObject = strategy.upload0009Handler(object,mid,binaryData,hexstr,content);
+        }else if ("000a".equals(mid)){
+            resultObject = strategy.upload000aHandler(object,mid,binaryData,hexstr);
+        }else if ("000c".equals(mid)){
+            resultObject = strategy.upload000cHandler(object,mid,binaryData);
         }
 
 
@@ -1182,265 +1226,286 @@ public class WeegCallbackController {
 //                }
 //            }
 //        } else if ("1001".equals(mid)) {
-        if ("1001".equals(mid)) {
-            //读最新事件记录条数 转成10进制
-            if ("07".equals(hexstr)) {
-                //事件记录条数 转成10进制
-                int n = Integer.parseInt(binaryData[0], 16);
-                object.put("读最新事件记录条数", binaryData[0]);
-                //事件记录数据
-                String count = "";
-                for (int i = 1; i < binaryData.length; i++) {
-                    count += binaryData[i];
-                }
-                if (n > 0) {
-                    for (int i = 0; i < n; i++) {
-                        //根据事件代码，获取事件名称  eventType
-                        String[] s1 = count.substring(i * 18, (i + 1) * 18).split("");
-                        object.put("读最新事件类型" + i, eventType((s1[0] + s1[1] + s1[2] + s1[3])));
-                        object.put("读最新事件时间" + i, (s1[4] + s1[5] + s1[6] + s1[7] + s1[8]
-                                + s1[9] + s1[10] + s1[11] + s1[12] + s1[13] + s1[14] + s1[15]));
-                        object.put("读最新事件详情" + i, s1[16] + s1[17]);
-                    }
-                } else {
-                    //根据事件代码，获取事件名称
-                    object.put("读最新事件记录数据", count);
-                }
-            }
-        } else if (mid.equals("1004")) {
-            if (hexstr.equals("07")) {
-                //解密  获取明文
-                String body = "";
-                int length = b.length;
-                int cd;
-                if (length % 16 == 0) {
-                    cd = length / 16;
-                } else {
-                    cd = length / 16 + 1;
-                }
-                for (int i = 0; i < cd; i++) {
-                    // 创建一个长度是16的数组,用于存放每一段数组
-                    byte[] newTxet = new byte[16];
-                    for (int j = 0; j < 16; j++) {
-                        if ((i * 16 + j) <= length - 1) {
-                            newTxet[j] = b[i * 16 + j];
-                        } else {
-                            newTxet[j] = 0;
-                        }
-                    }
-                    String originalString = dataFomat.bytes2HexString(aesUtil.decryptAES(newTxet, keyvalue));
-                    body = body + originalString;
-                }
-                // 去掉body中的空格
-                body = body.replaceAll(" ", "");
-
-                // 将获取的数据域转换成byte[]
-                byte[] b2 = dataFomat.toBytes(body);
-
-                // 将byte转换成string
-                String[] binaryData3 = new String[b2.length];
-                for (int i = 0; i < binaryData3.length; i++) {
-                    binaryData3[i] = dataFomat.toHex(b2[i]);
-                }
-
-                int daynum = Integer.parseInt(binaryData3[3], 16);
-
-                String bindata = "";
-                for (int i = 4; i < binaryData3.length; i++) {
-                    bindata += binaryData3[i];
-                }
-                object.put("读日用气记录起始日期", binaryData3[0] + binaryData3[1] + binaryData3[2]);
-                object.put("读日用气记录天数", binaryData3[3]);
-                JSONArray array = new JSONArray();
-                for (int i = 0; i < daynum; i++) {
-                    JSONObject dataobject = new JSONObject();
-                    String s1 = bindata.substring(i * 8, (i + 1) * 8);
-                    long n1 = Long.parseLong(s1, 16);
-                    double d1 = Double.valueOf(n1 * 1.0) / 1000;
-                    dataobject.put("读日用气累计量", String.format("%.3f", d1));
-                    array.add(dataobject);
-                }
-                object.put("数据域", array);
-            }
-        } else if (mid.equals("2001")) {
-            object.put("嵌软版本", binaryData[0] + binaryData[1]);
-        } else if (mid.equals("2002")) {
-            object.put("表型号", binaryData[0] + binaryData[1]);
-        } else if (mid.equals("2003")) {
-            object.put("表号长度", Integer.parseInt(binaryData[0], 16));
-            String devSerial = "";
-            for (int i = 1; i < 33; i++) {
-                devSerial = devSerial + binaryData[i];
-            }
-            devSerial = dataFomat.hexStr2Str(devSerial);
-            // 第10位表示表号参数的长度
-            if (devSerial.length() < 32) {
-                for (int j = 0; j < 32; j++) {
-                    devSerial += "0";
-                }
-            }
-            object.put("表号内容", devSerial.replaceAll("\\u0000", "0"));
-        } else if (mid.equals("2004")) {
-            object.put("带阀门", binaryData[0]);
-        } else if (mid.equals("2005")) {
-            object.put("通信模式", binaryData[0]);
-        } else if (mid.equals("2006")) {
-            if (hexstr.equals("04")) {
-                object.put("定时上传天数/月份区分位", binaryData[0]);
-                object.put("定时上传周期值", binaryData[1]);
-                object.put("定时上传时间/时", binaryData[2]);
-                object.put("定时上传时间/分", binaryData[3]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2007")) {
-            //java.lang.NumberFormatException: For input string: "3138332e3233302e34302e3339202020"
-            if (hexstr.equals("04")) {
-                String ip = "";
-                for (int i = 0; i < 16; i++) {
-                    ip += binaryData[i];
-                }
-                byte[] ipbytes = dataFomat.toBytes(ip);
-                String IP = new String(ipbytes);
-                IP = IP.replaceAll(" ", "");
-                IP = IP.replaceAll("\\u0000", "");
-                object.put("采集服务参数", IP);
-//                    String port = dataFomat.hexStr2Str(binaryData[16] + binaryData[17]);
-                int port2 = Integer.valueOf(binaryData[16] + binaryData[17], 16);
-                object.put("采集服务器端口", port2);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2009")) {
-            String errornum = errorcode(binaryData[0] + binaryData[1]);
-            object.put("错误码", errornum);
-
-            //根据IMEI 查询出设备编号
-            DevRegInfo devRegInfo = devRegInfoService.selectByImei(imeikey);
-            String devserial = devRegInfo.getDevserial();
-
-            //根据设备编号 devserial 查询出 最新的3001 上报信息，获取里面的密钥版本号
-            DevDataLog devDataLog = devDataLogService.selectDataByDevserialAndDid(devserial, "3001");
-            String j = JSONObject.fromObject(devDataLog.getData()).getString("数据域");
-            String keyname = JSONObject.fromObject(j).getString("密钥版本号");
-
-            String errorcode = binaryData[0] + binaryData[1];
-            //判断返回的2009 错误码是否是00，00表示下发的2009修改密钥已成功
-            if (!"0000".equals(errorcode)) {
-                //修改密钥失败，删除非默认的最新修改的版本
-                int delnewSecretKey = devSecretKeyService.delNewSecretKey(imeikey, keyname);
-                //System.out.println(delnewSecretKey);
-            }
-        } else if (mid.equals("200a") || mid.equals("200A")) {
-            String SIM = "";
-            for (int i = 0; i < 20; i++) {
-                SIM += binaryData[i];
-            }
-            String SIMascii = dataFomat.convertHexToString(SIM);
-            object.put("SIM卡信息", SIMascii);
-        } else if (mid.equals("200e") || mid.equals("200E")) {
-            if (hexstr.equals("04")) {
-                object.put("错峰间隔时间", binaryData[0] + binaryData[1]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("200f") || mid.equals("200F")) {
-            if (hexstr.equals("04")) {
-                object.put("多天不用气关阀控制", binaryData[0]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2010")) {
-            if (hexstr.equals("04")) {
-                object.put("多天不上传关阀控制", binaryData[0]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2011")) {
-            if (hexstr.equals("04")) {
-                object.put("过流报警使能", binaryData[0]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2012")) {
-            if (hexstr.equals("04")) {
-                //APN
-                String APN = "";
-                for (int i = 0; i < 32; i++) {
-                    if ("00".equals(binaryData[i])) {
-                        break;
-                    } else {
-                        APN += binaryData[i];
-                    }
-                }
-                String APNascii = dataFomat.convertHexToString(APN);
-                object.put("APN", APNascii.toUpperCase());
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("2020")) {
-            if (hexstr.equals("04")) {
-                object.put("液晶显示", binaryData[0]);
-            } else if (hexstr.equals("05")) {
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("0007")) {
-            //备电电量百分比
-            object.put("备电电量百分比", binaryData[0]);
-        } else if (mid.equals("0008")) {
-            //预留量
-            //判断是读数据--->上行(04)
-            if (hexstr.equals("04")) {
-                if (content.equals("00000000")) {
-                    object.put("预留量", content);
-                } else {
-                    String bindata = binaryData[0] + binaryData[1] + binaryData[2] + binaryData[3];
-                    long ct = Long.parseLong(bindata, 16);
-                    Double evs = Double.valueOf(ct * 1.0 / 1000);
-                    object.put("预留量", String.format("%.3f", evs));
-                }
-                //判断是写数据--->上行(05)
-            } else if (hexstr.equals("05")) {
-                //错误码
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("0009")) {
-            //剩余气量
-            //判断是读数据--->上行(04)
-            if (hexstr.equals("04")) {
-                if (content.equals("00000000")) {
-                    object.put("剩余气量", content);
-                } else {
-                    String bindata = binaryData[0] + binaryData[1] + binaryData[2] + binaryData[3];
-                    long ct = Long.parseLong(bindata, 16);
-                    Double evs = Double.valueOf(ct * 1.0 / 1000);
-                    object.put("剩余气量", String.format("%.3f", evs));
-                }
-                //判断是写数据--->上行(05)
-            } else if (hexstr.equals("05")) {
-                //错误码
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if (mid.equals("000a") || mid.equals("000A")) {
-            //透支状态
-            if (hexstr.equals("04")) {
-                object.put("透支状态", binaryData[0]);
-            } else if (hexstr.equals("05")) {
-                //错误码
-                String errornum = errorcode(binaryData[0] + binaryData[1]);
-                object.put("错误码", errornum);
-            }
-        } else if ("000c".equals(mid) || "000C".equals(mid)) {
+//        if ("1001".equals(mid)) {
+//            //读最新事件记录条数 转成10进制
+//            if ("07".equals(hexstr)) {
+//                //事件记录条数 转成10进制
+//                int n = Integer.parseInt(binaryData[0], 16);
+//                object.put("读最新事件记录条数", binaryData[0]);
+//                //事件记录数据
+//                String count = "";
+//                for (int i = 1; i < binaryData.length; i++) {
+//                    count += binaryData[i];
+//                }
+//                if (n > 0) {
+//                    for (int i = 0; i < n; i++) {
+//                        //根据事件代码，获取事件名称  eventType
+//                        String[] s1 = count.substring(i * 18, (i + 1) * 18).split("");
+//                        object.put("读最新事件类型" + i, eventType((s1[0] + s1[1] + s1[2] + s1[3])));
+//                        object.put("读最新事件时间" + i, (s1[4] + s1[5] + s1[6] + s1[7] + s1[8]
+//                                + s1[9] + s1[10] + s1[11] + s1[12] + s1[13] + s1[14] + s1[15]));
+//                        object.put("读最新事件详情" + i, s1[16] + s1[17]);
+//                    }
+//                } else {
+//                    //根据事件代码，获取事件名称
+//                    object.put("读最新事件记录数据", count);
+//                }
+//            }
+//        } else if (mid.equals("1004")) {
+//        if (mid.equals("1004")) {
+//            if (hexstr.equals("07")) {
+//                //解密  获取明文
+//                String body = "";
+//                int length = b.length;
+//                int cd;
+//                if (length % 16 == 0) {
+//                    cd = length / 16;
+//                } else {
+//                    cd = length / 16 + 1;
+//                }
+//                for (int i = 0; i < cd; i++) {
+//                    // 创建一个长度是16的数组,用于存放每一段数组
+//                    byte[] newTxet = new byte[16];
+//                    for (int j = 0; j < 16; j++) {
+//                        if ((i * 16 + j) <= length - 1) {
+//                            newTxet[j] = b[i * 16 + j];
+//                        } else {
+//                            newTxet[j] = 0;
+//                        }
+//                    }
+//                    String originalString = dataFomat.bytes2HexString(aesUtil.decryptAES(newTxet, keyvalue));
+//                    body = body + originalString;
+//                }
+//                // 去掉body中的空格
+//                body = body.replaceAll(" ", "");
+//
+//                // 将获取的数据域转换成byte[]
+//                byte[] b2 = dataFomat.toBytes(body);
+//
+//                // 将byte转换成string
+//                String[] binaryData3 = new String[b2.length];
+//                for (int i = 0; i < binaryData3.length; i++) {
+//                    binaryData3[i] = dataFomat.toHex(b2[i]);
+//                }
+//
+//                int daynum = Integer.parseInt(binaryData3[3], 16);
+//
+//                String bindata = "";
+//                for (int i = 4; i < binaryData3.length; i++) {
+//                    bindata += binaryData3[i];
+//                }
+//                object.put("读日用气记录起始日期", binaryData3[0] + binaryData3[1] + binaryData3[2]);
+//                object.put("读日用气记录天数", binaryData3[3]);
+//                JSONArray array = new JSONArray();
+//                for (int i = 0; i < daynum; i++) {
+//                    JSONObject dataobject = new JSONObject();
+//                    String s1 = bindata.substring(i * 8, (i + 1) * 8);
+//                    long n1 = Long.parseLong(s1, 16);
+//                    double d1 = Double.valueOf(n1 * 1.0) / 1000;
+//                    dataobject.put("读日用气累计量", String.format("%.3f", d1));
+//                    array.add(dataobject);
+//                }
+//                object.put("数据域", array);
+//            }
+//        } else if (mid.equals("2001")) {
+//        if (mid.equals("2001")) {
+//            object.put("嵌软版本", binaryData[0] + binaryData[1]);
+//        } else if (mid.equals("2002")) {
+//        if (mid.equals("2002")) {
+//            object.put("表型号", binaryData[0] + binaryData[1]);
+//        } else if (mid.equals("2003")) {
+//        if (mid.equals("2003")) {
+//            object.put("表号长度", Integer.parseInt(binaryData[0], 16));
+//            String devSerial = "";
+//            for (int i = 1; i < 33; i++) {
+//                devSerial = devSerial + binaryData[i];
+//            }
+//            devSerial = dataFomat.hexStr2Str(devSerial);
+//            // 第10位表示表号参数的长度
+//            if (devSerial.length() < 32) {
+//                for (int j = 0; j < 32; j++) {
+//                    devSerial += "0";
+//                }
+//            }
+//            object.put("表号内容", devSerial.replaceAll("\\u0000", "0"));
+//        } else if (mid.equals("2004")) {
+//        if (mid.equals("2004")) {
+//            object.put("带阀门", binaryData[0]);
+//        } else if (mid.equals("2005")) {
+//        if (mid.equals("2005")) {
+//            object.put("通信模式", binaryData[0]);
+//        } else if (mid.equals("2006")) {
+//        if (mid.equals("2006")) {
+//            if (hexstr.equals("04")) {
+//                object.put("定时上传天数/月份区分位", binaryData[0]);
+//                object.put("定时上传周期值", binaryData[1]);
+//                object.put("定时上传时间/时", binaryData[2]);
+//                object.put("定时上传时间/分", binaryData[3]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2007")) {
+//        if (mid.equals("2007")) {
+//            //java.lang.NumberFormatException: For input string: "3138332e3233302e34302e3339202020"
+//            if (hexstr.equals("04")) {
+//                String ip = "";
+//                for (int i = 0; i < 16; i++) {
+//                    ip += binaryData[i];
+//                }
+//                byte[] ipbytes = dataFomat.toBytes(ip);
+//                String IP = new String(ipbytes);
+//                IP = IP.replaceAll(" ", "");
+//                IP = IP.replaceAll("\\u0000", "");
+//                object.put("采集服务参数", IP);
+////                    String port = dataFomat.hexStr2Str(binaryData[16] + binaryData[17]);
+//                int port2 = Integer.valueOf(binaryData[16] + binaryData[17], 16);
+//                object.put("采集服务器端口", port2);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2009")) {
+//        if (mid.equals("2009")) {
+//            String errornum = errorcode(binaryData[0] + binaryData[1]);
+//            object.put("错误码", errornum);
+//
+//            //根据IMEI 查询出设备编号
+//            DevRegInfo devRegInfo = devRegInfoService.selectByImei(imeikey);
+//            String devserial = devRegInfo.getDevserial();
+//
+//            //根据设备编号 devserial 查询出 最新的3001 上报信息，获取里面的密钥版本号
+//            DevDataLog devDataLog = devDataLogService.selectDataByDevserialAndDid(devserial, "3001");
+//            String j = JSONObject.fromObject(devDataLog.getData()).getString("数据域");
+//            String keyname = JSONObject.fromObject(j).getString("密钥版本号");
+//
+//            String errorcode = binaryData[0] + binaryData[1];
+//            //判断返回的2009 错误码是否是00，00表示下发的2009修改密钥已成功
+//            if (!"0000".equals(errorcode)) {
+//                //修改密钥失败，删除非默认的最新修改的版本
+//                int delnewSecretKey = devSecretKeyService.delNewSecretKey(imeikey, keyname);
+//                //System.out.println(delnewSecretKey);
+//            }
+//        } else if (mid.equals("200a") || mid.equals("200A")) {
+//        if (mid.equals("200a") || mid.equals("200A")) {
+//            String SIM = "";
+//            for (int i = 0; i < 20; i++) {
+//                SIM += binaryData[i];
+//            }
+//            String SIMascii = dataFomat.convertHexToString(SIM);
+//            object.put("SIM卡信息", SIMascii);
+//        } else if (mid.equals("200e") || mid.equals("200E")) {
+//        if (mid.equals("200e") || mid.equals("200E")) {
+//            if (hexstr.equals("04")) {
+//                object.put("错峰间隔时间", binaryData[0] + binaryData[1]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("200f") || mid.equals("200F")) {
+//        if (mid.equals("200f") || mid.equals("200F")) {
+//            if (hexstr.equals("04")) {
+//                object.put("多天不用气关阀控制", binaryData[0]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2010")) {
+//        if (mid.equals("2010")) {
+//            if (hexstr.equals("04")) {
+//                object.put("多天不上传关阀控制", binaryData[0]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2011")) {
+//        if (mid.equals("2011")) {
+//            if (hexstr.equals("04")) {
+//                object.put("过流报警使能", binaryData[0]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2012")) {
+//        if (mid.equals("2012")) {
+//            if (hexstr.equals("04")) {
+//                //APN
+//                String APN = "";
+//                for (int i = 0; i < 32; i++) {
+//                    if ("00".equals(binaryData[i])) {
+//                        break;
+//                    } else {
+//                        APN += binaryData[i];
+//                    }
+//                }
+//                String APNascii = dataFomat.convertHexToString(APN);
+//                object.put("APN", APNascii.toUpperCase());
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("2020")) {
+//        if (mid.equals("2020")) {
+//            if (hexstr.equals("04")) {
+//                object.put("液晶显示", binaryData[0]);
+//            } else if (hexstr.equals("05")) {
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("0007")) {
+//        if (mid.equals("0007")) {
+//            //备电电量百分比
+//            object.put("备电电量百分比", binaryData[0]);
+//        } else if (mid.equals("0008")) {
+//        if (mid.equals("0008")) {
+//            //预留量
+//            //判断是读数据--->上行(04)
+//            if (hexstr.equals("04")) {
+//                if (content.equals("00000000")) {
+//                    object.put("预留量", content);
+//                } else {
+//                    String bindata = binaryData[0] + binaryData[1] + binaryData[2] + binaryData[3];
+//                    long ct = Long.parseLong(bindata, 16);
+//                    Double evs = Double.valueOf(ct * 1.0 / 1000);
+//                    object.put("预留量", String.format("%.3f", evs));
+//                }
+//                //判断是写数据--->上行(05)
+//            } else if (hexstr.equals("05")) {
+//                //错误码
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("0009")) {
+//        if (mid.equals("0009")) {
+//            //剩余气量
+//            //判断是读数据--->上行(04)
+//            if (hexstr.equals("04")) {
+//                if (content.equals("00000000")) {
+//                    object.put("剩余气量", content);
+//                } else {
+//                    String bindata = binaryData[0] + binaryData[1] + binaryData[2] + binaryData[3];
+//                    long ct = Long.parseLong(bindata, 16);
+//                    Double evs = Double.valueOf(ct * 1.0 / 1000);
+//                    object.put("剩余气量", String.format("%.3f", evs));
+//                }
+//                //判断是写数据--->上行(05)
+//            } else if (hexstr.equals("05")) {
+//                //错误码
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if (mid.equals("000a") || mid.equals("000A")) {
+//        if (mid.equals("000a") || mid.equals("000A")) {
+//            //透支状态
+//            if (hexstr.equals("04")) {
+//                object.put("透支状态", binaryData[0]);
+//            } else if (hexstr.equals("05")) {
+//                //错误码
+//                String errornum = errorcode(binaryData[0] + binaryData[1]);
+//                object.put("错误码", errornum);
+//            }
+//        } else if ("000c".equals(mid) || "000C".equals(mid)) {
+        if ("000c".equals(mid) || "000C".equals(mid)) {
             String suijima = "";
             for (int i = 0; i < 16; i++) {
                 suijima += binaryData[i];

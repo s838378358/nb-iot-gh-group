@@ -1,5 +1,8 @@
 package com.weeg.callbackHandler;
 
+import com.weeg.service.DevDataLogService;
+import com.weeg.service.DevRegInfoService;
+import com.weeg.service.DevSecretKeyService;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -86,5 +89,101 @@ public abstract class Handler implements InitializingBean {
     public JSONObject upload1000Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
         throw new UnsupportedOperationException();
     }
+
+    public JSONObject upload1001Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload1004Handler(JSONObject object,String mid,byte[] b,String[] binaryData,String hexstr,String keyvalue){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2001Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2002Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2003Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2004Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2005Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2006Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2007Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2009Handler(
+            JSONObject object, String mid, String[] binaryData, String imeikey,DevRegInfoService devRegInfoService,
+            DevDataLogService devDataLogService, DevSecretKeyService devSecretKeyService){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload200aHandler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload200eHandler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload200fHandler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2010Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2011Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2012Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload2020Handler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload0007Handler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload0008Handler(JSONObject object,String mid,String[] binaryData,String hexstr,String content){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload0009Handler(JSONObject object,String mid,String[] binaryData,String hexstr,String content){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload000aHandler(JSONObject object,String mid,String[] binaryData,String hexstr){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSONObject upload000cHandler(JSONObject object,String mid,String[] binaryData){
+        throw new UnsupportedOperationException();
+    }
+
+
+
+
+
+
 
 }
