@@ -84,10 +84,10 @@ public class WeegControllerTest {
             params.put("operator", value);
 
             // 拼接平台注册地址
-            String registUrl = dataprops.getStr(operatorInfo.substring(0, 1)) + "registDevice";
+//            String registUrl = dataprops.getStr(operatorInfo.substring(0, 1)) + "registDevice";
 
             // 向平台进行注册，获取注册结果
-            String RegistResult = post.post(registUrl, params.toString());
+            String RegistResult = RegistDeviceController.createDevice(params.toString());
             // 网络请求失败，得到fail提示
             if ("false".equals(JSONObject.fromObject(RegistResult).getString("result"))) {
                 // 记录日志
@@ -113,59 +113,59 @@ public class WeegControllerTest {
 //                    weegDatJSONObj.put("nbId", iotserial);
 //                    weegDatJSONObj.put("serial", serial);
                     //将设备信息标准化给weegdat
-                    try{
+//                    try{
 //                        //获取 weegDatRegistUrl
 //                        String weegDatRegistUrl = dataprops.getStr("weegDatRegistUrl");
 //                        //请求
 //                        String weegDatRegistResult = post.post(weegDatRegistUrl, weegDatJSONObj.toString());
 //                        Ok ok = JSONUtil.toBean(weegDatRegistResult, Ok.class);
 //                        if ("00000".equals(ok.getErrorCode2())) {
-                            // 将信息添加到数据库
-                            DevRegInfo deRegInfoNew = new DevRegInfo();
-                            deRegInfoNew.setPlatformcode(operatorInfo);
-                            //设备序列号
-                            deRegInfoNew.setDevserial(serial);
-                            //NBID
-                            deRegInfoNew.setIotserial(iotserial);
-                            deRegInfoNew.setDevtype(deviceType);
-                            deRegInfoNew.setImei(imei);
-                            deRegInfoNew.setImsi(imsi);
-                            deRegInfoNew.setRegstatus("0");
-                            deRegInfoNew.setRegtime(new Date());
+                    // 将信息添加到数据库
+                    DevRegInfo deRegInfoNew = new DevRegInfo();
+                    deRegInfoNew.setPlatformcode(operatorInfo);
+                    //设备序列号
+                    deRegInfoNew.setDevserial(serial);
+                    //NBID
+                    deRegInfoNew.setIotserial(iotserial);
+                    deRegInfoNew.setDevtype(deviceType);
+                    deRegInfoNew.setImei(imei);
+                    deRegInfoNew.setImsi(imsi);
+                    deRegInfoNew.setRegstatus("0");
+                    deRegInfoNew.setRegtime(new Date());
 
-                            //插入设备信息
-                            int insertResult = devRegInfoService.insert(deRegInfoNew);
-                            LOG.info("设备信息入库:"+insertResult);
+                    //插入设备信息
+                    int insertResult = devRegInfoService.insert(deRegInfoNew);
+                    LOG.info("设备信息入库:" + insertResult);
 
-                            //插入设备默认密钥
-                            DevSecretKey devSecretKey = new DevSecretKey();
-                            devSecretKey.setImei(imei);
-                            devSecretKey.setKeyname("00");
-                            devSecretKey.setKeylength("10");
-                            devSecretKey.setKeyvalue("21213141516171811222324252627282");
-                            devSecretKey.setDefaultversion("0");
-                            devSecretKey.setDevtype(deviceType);
-                            devSecretKey.setUsekeyname("0");
-                            devSecretKey.setDevserial(serial);
-                            int insertDefaultSecretKey = devSecretKeyService.insertnewsecret(devSecretKey);
-                            LOG.info("设备默认密钥入库:"+insertDefaultSecretKey);
+                    //插入设备默认密钥
+                    DevSecretKey devSecretKey = new DevSecretKey();
+                    devSecretKey.setImei(imei);
+                    devSecretKey.setKeyname("00");
+                    devSecretKey.setKeylength("10");
+                    devSecretKey.setKeyvalue("21213141516171811222324252627282");
+                    devSecretKey.setDefaultversion("0");
+                    devSecretKey.setDevtype(deviceType);
+                    devSecretKey.setUsekeyname("0");
+                    devSecretKey.setDevserial(serial);
+                    int insertDefaultSecretKey = devSecretKeyService.insertnewsecret(devSecretKey);
+                    LOG.info("设备默认密钥入库:" + insertDefaultSecretKey);
 
-                            //添加设备状态，默认status为0 ，设备离线状态
-                            IotImeiStatus iotImeiStatus = new IotImeiStatus();
-                            iotImeiStatus.setStatus("0");
-                            iotImeiStatus.setIotserial(iotserial);
-                            iotImeiStatus.setDevserial(serial);
-                            iotImeiStatus.setImei(imei);
-                            int n = iotImeiStatusService.insert(iotImeiStatus);
-                            LOG.info("设备默认状态入库:"+n);
+                    //添加设备状态，默认status为0 ，设备离线状态
+                    IotImeiStatus iotImeiStatus = new IotImeiStatus();
+                    iotImeiStatus.setStatus("0");
+                    iotImeiStatus.setIotserial(iotserial);
+                    iotImeiStatus.setDevserial(serial);
+                    iotImeiStatus.setImei(imei);
+                    int n = iotImeiStatusService.insert(iotImeiStatus);
+                    LOG.info("设备默认状态入库:" + n);
 
-                            //设置返回参数
-                            responseData.setResult(true);
-                            responseData.setErrorCode1("2101");
-                            responseData.setErrorCode2("00002");
-                            responseData.setData(resultObj.getString("data"));
+                    //设置返回参数
+                    responseData.setResult(true);
+                    responseData.setErrorCode1("2101");
+                    responseData.setErrorCode2("00002");
+                    responseData.setData(resultObj.getString("data"));
 //                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送成功");
-                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功");
+                    responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功");
 //                        } else {
 //                            responseData.setResult(false);
 //                            responseData.setErrorCode1("2101");
@@ -173,14 +173,14 @@ public class WeegControllerTest {
 //                            responseData.setData(resultObj.getString("data"));
 //                            responseData.setMessage("平台注册成功，数据库设备注册成功，默认密钥写入成功，数据标准化推送失败");
 //                        }
-                    }catch (Exception e){
-                        //设置返回参数
-                        responseData.setResult(true);
-                        responseData.setErrorCode1("2101");
-                        responseData.setErrorCode2("00004");
-                        responseData.setData(resultObj.getString("data"));
-                        responseData.setMessage("平台注册成功，数据标准化推送失败");
-                    }
+//                    }catch (Exception e){
+//                        //设置返回参数
+//                        responseData.setResult(true);
+//                        responseData.setErrorCode1("2101");
+//                        responseData.setErrorCode2("00004");
+//                        responseData.setData(resultObj.getString("data"));
+//                        responseData.setMessage("平台注册成功，数据标准化推送失败");
+//                    }
                 } else {
                     // 平台发送请求成功，但是注册失败！
                     responseData.setResult(false);
@@ -244,7 +244,6 @@ public class WeegControllerTest {
             params.put("operator", value);
 
             // 拼接请求内容，将需要下发的命令提交
-            Post post = new Post();
 
 //            //将设备信息标准化给weegdat
 //            JSONObject weegDatJSONObj = new JSONObject();
@@ -261,52 +260,52 @@ public class WeegControllerTest {
 //                Ok ok = JSONUtil.toBean(weegDatRemoveResult, Ok.class);
 //                if ("00000".equals(ok.getErrorCode2())) {
 
-                    // 初始化请求地址对象
-                    String OperatorInfo = devRegInfo.getPlatformcode();
-                    String postUrl = dataprops.getStr(OperatorInfo.substring(0, 1)) + "removeDevice";
+                // 初始化请求地址对象
+//                    String OperatorInfo = devRegInfo.getPlatformcode();
+//                    String postUrl = dataprops.getStr(OperatorInfo.substring(0, 1)) + "removeDevice";
 
-                    // 从平台发送删除设备信息请求
-                    String result = post.post(postUrl, params.toString());
+                // 从平台发送删除设备信息请求
+                String result = RemoveDeviceController.deleteDevice(params.toString());
 
-                    if ("false".equals(JSONObject.fromObject(result).getString("result"))) {
-                        LOG.info(deviceSerial + "," + new Date() + "," + "删除设备平台请求失败");
+                if ("false".equals(JSONObject.fromObject(result).getString("result"))) {
+                    LOG.info(deviceSerial + "," + new Date() + "," + "删除设备平台请求失败");
 
-                        // 请求失败，result 为 false
-                        responseData.setResult(false);
-                        responseData.setErrorCode1("2101");
-                        responseData.setErrorCode2("00002");
-                        responseData.setMessage("平台删除失败" + JSONObject.fromObject(result).getString("message"));
+                    // 请求失败，result 为 false
+                    responseData.setResult(false);
+                    responseData.setErrorCode1("2101");
+                    responseData.setErrorCode2("00002");
+                    responseData.setMessage("平台删除失败" + JSONObject.fromObject(result).getString("message"));
 
-                    } else {
-                        if (JSONObject.fromObject(result).getBoolean("result")) {
+                } else {
+                    if (JSONObject.fromObject(result).getBoolean("result")) {
 
-                            // 平台删除成功之后，将注册信息表中的相关信息删除 包括密钥和设备状态信息
-                            int deleteResult = devRegInfoService.deleteByPrimaryKey(deviceSerial);
-                            //删除设备状态信息
-                            int deleteStatus = iotImeiStatusService.deleteStatusByImei(imei);
-                            //删除设备默认密钥
-                            int deleteSecretKye = devSecretKeyService.delSecretKey(deviceSerial, imei);
+                        // 平台删除成功之后，将注册信息表中的相关信息删除 包括密钥和设备状态信息
+                        int deleteResult = devRegInfoService.deleteByPrimaryKey(deviceSerial);
+                        //删除设备状态信息
+                        int deleteStatus = iotImeiStatusService.deleteStatusByImei(imei);
+                        //删除设备默认密钥
+                        int deleteSecretKye = devSecretKeyService.delSecretKey(deviceSerial, imei);
 
-                            if (deleteResult == 1 && deleteStatus == 1 && deleteSecretKye == 1) {
-                                responseData.setResult(true);
-                                responseData.setErrorCode1("2101");
-                                responseData.setErrorCode2("00003");
+                        if (deleteResult == 1 && deleteStatus == 1 && deleteSecretKye == 1) {
+                            responseData.setResult(true);
+                            responseData.setErrorCode1("2101");
+                            responseData.setErrorCode2("00003");
 //                                responseData.setMessage("平台设备成功删除，数据库删除成功，数据标准化推送成功");
-                                responseData.setMessage("平台设备成功删除，数据库删除成功");
-                            } else {
-                                responseData.setResult(false);
-                                responseData.setErrorCode1("2101");
-                                responseData.setErrorCode2("00004");
-//                                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送成功");
-                                responseData.setMessage("平台设备成功删除，数据库删除失败");
-                            }
+                            responseData.setMessage("平台设备成功删除，数据库删除成功");
                         } else {
                             responseData.setResult(false);
                             responseData.setErrorCode1("2101");
-                            responseData.setErrorCode2("00005");
-                            responseData.setMessage("平台删除失败，" + JSONObject.fromObject(result).getString("message"));
+                            responseData.setErrorCode2("00004");
+//                                responseData.setMessage("平台设备成功删除，数据库删除失败，数据标准化推送成功");
+                            responseData.setMessage("平台设备成功删除，数据库删除失败");
                         }
+                    } else {
+                        responseData.setResult(false);
+                        responseData.setErrorCode1("2101");
+                        responseData.setErrorCode2("00005");
+                        responseData.setMessage("平台删除失败，" + JSONObject.fromObject(result).getString("message"));
                     }
+                }
 //                }else {
 //                    responseData.setResult(false);
 //                    responseData.setErrorCode1("2101");

@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 @RestController
 public class ResponseController extends CoreController{
-    static Post post = new Post();
+//    static Post post = new Post();
     //读取配置文件
     Props props = PropsUtil.get("properties/data.properties");
     //配置日志

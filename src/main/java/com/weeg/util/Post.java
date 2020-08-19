@@ -31,7 +31,7 @@ public class Post {
 			OutputStreamWriter out = new OutputStreamWriter(
 					connection.getOutputStream(), "UTF-8");// 字符输出流，确认流的输出文件按照UTF—8的格式
 			out.append(params);// 将params中的字符追加
-			
+
 			out.flush();// 在关闭流的时候，将内存中的数据一次性输出
 			out.close();// 关闭流
 			// 读取响应
@@ -104,6 +104,58 @@ public class Post {
 			e.printStackTrace();
 		}
 		return "fail";
+	}
+
+	/**
+	 * 发送delete请求
+	 * <p>
+	 * Description:
+	 * </p>
+	 * <p>
+	 * Title: delete
+	 * </p>
+	 *
+	 * @author yuyan
+	 * @date 2018年11月22日
+	 */
+	public static String delete(String url,String host,String apiKey) {
+		// 定义stringbuffer 方便后面读取网页返回字节流信息时的字符串拼接
+		StringBuffer buffer = new StringBuffer();
+		// 创建url_connection
+		java.net.URLConnection http_url_connection = null;
+		try {
+			http_url_connection = (new java.net.URL(url)).openConnection();
+			java.net.HttpURLConnection HttpURLConnection = (java.net.HttpURLConnection) http_url_connection;// 将urlconnection类强转为httpurlconnection类
+			HttpURLConnection.setDoInput(true);
+			HttpURLConnection.setDoOutput(true);
+
+			HttpURLConnection.setRequestMethod("DELETE");// 设置请求方式。可以是delete put  post get
+			HttpURLConnection.setRequestProperty("Content-Type",
+					"application/json");// 设置编码格式
+			HttpURLConnection.setRequestProperty("Host", host);
+			HttpURLConnection.setRequestProperty("api-key", apiKey);
+
+			java.io.BufferedOutputStream output_stream = new java.io.BufferedOutputStream(
+					HttpURLConnection.getOutputStream());
+			output_stream.flush();
+			output_stream.close();
+			output_stream = null;
+			java.io.InputStreamReader input_stream_reader = new java.io.InputStreamReader(
+					HttpURLConnection.getInputStream(), "utf-8");
+			java.io.BufferedReader buffered_reader = new java.io.BufferedReader(
+					input_stream_reader);
+			buffer = new StringBuffer();
+			String line;
+			while ((line = buffered_reader.readLine()) != null) {
+				buffer.append(line);
+			}
+			line = null;
+			input_stream_reader.close();
+			buffered_reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return buffer.toString();
 	}
 
 	public static String get(String url) {

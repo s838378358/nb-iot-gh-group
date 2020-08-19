@@ -200,6 +200,46 @@ public class AESUtil {
 		String crcData = dataFomat.byteToHex(packagebuf, packagebuf.length).replace(" ", "").toUpperCase();
 		return crcData;
 	}
+
+	/**
+	 * 解密 转成 16 进制字符串
+	 */
+	public static String[] decryptAESstr(byte[] b, String keyvalue) {
+		DataFomat dataFomat = new DataFomat();
+		AESUtil aesUtil = new AESUtil();
+		String body = "";
+		int length = b.length;
+		int cd;
+		if (length % 16 == 0) {
+			cd = length / 16;
+		} else {
+			cd = length / 16 + 1;
+		}
+		for (int i = 0; i < cd; i++) {
+			// 创建一个长度是16的数组,用于存放每一段数组
+			byte[] newTxet = new byte[16];
+			for (int j = 0; j < 16; j++) {
+				if ((i * 16 + j) <= length - 1) {
+					newTxet[j] = b[i * 16 + j];
+				} else {
+					newTxet[j] = 0;
+				}
+			}
+			String originalString = dataFomat.bytes2HexString(aesUtil.decryptAES(newTxet, keyvalue));
+			body = body + originalString;
+		}
+		// 去掉body中的空格
+		body = body.replaceAll(" ", "");
+		// 将获取的数据域转换成byte[]
+		byte[] b2 = dataFomat.toBytes(body);
+
+		// 将byte转换成string
+		String[] binaryData3 = new String[b2.length];
+		for (int i = 0; i < b2.length; i++) {
+			binaryData3[i] = dataFomat.toHex(b2[i]);
+		}
+		return binaryData3;
+	}
 	
 	
 	/**
@@ -219,13 +259,13 @@ public class AESUtil {
 //		return random;
 //	}
 
-	/**
-	 * 	加密加MAC
-	 * @param dt
-	 * @param devRegInfo
-	 * @return
-	 * @throws Exception
-	 */
+//	/**
+//	 * 	加密加MAC
+//	 * @param dt
+//	 * @param devRegInfo
+//	 * @return
+//	 * @throws Exception
+//	 */
 //	public String encryptAESAndMAC(String dt,DevRegInfo devRegInfo) throws Exception {
 //		String body = "";
 //		DataFomat dataFomat = new DataFomat();
